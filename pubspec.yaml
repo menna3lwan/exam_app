@@ -1,0 +1,56 @@
+name: exam_app
+description: "Exam App - Elevate Online Exams (Flutter, Clean Architecture)."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.11.0
+
+# Dependencies specify other packages that your package needs in order to work.
+#
+# Kept identical to the reference architecture (Clean-Arch-C6-Elevate) wherever
+# possible. Any addition beyond the reference set is called out below and was
+# introduced only where Phase 1 explicitly required it (design system / fonts).
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # --- Carried over as-is from the reference architecture ---
+  cupertino_icons: ^1.0.8
+  dio:
+  retrofit: ^4.9.0
+  bloc:
+  flutter_bloc: ^9.1.1
+  get_it: ^9.2.1
+  pretty_dio_logger: ^1.4.0
+  injectable:
+
+  # --- New for Phase 1 (design system / localization foundation) ---
+  # Figma type styles use "Inter" (weights 400/500). Loaded via google_fonts
+  # instead of bundling .ttf assets, since no font files were provided yet.
+  google_fonts: ^6.2.1
+  # Required by flutter_localizations / ARB-based localization foundation.
+  # Left unpinned deliberately: flutter_localizations (SDK) pins an exact
+  # intl version per Flutter release, and adding our own caret constraint
+  # here is a common source of version-solve conflicts.
+  intl:
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  retrofit_generator: ^10.0.1
+  build_runner: ^2.6.0
+  injectable_generator:
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  generate: true
+
+  assets:
+    - assets/files/
+    - assets/images/
+    - assets/icons/

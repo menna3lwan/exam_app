@@ -1,0 +1,11 @@
+{
+  "@@locale": "en",
+  "appName": "Exam App",
+  "@appName": {
+    "description": "The application name, shown in the OS task switcher / title."
+  },
+  "commonRetry": "Retry",
+  "commonCancel": "Cancel",
+  "commonOk": "OK",
+  "commonSomethingWentWrong": "Something went wrong"
+}
