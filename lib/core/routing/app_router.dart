@@ -1,26 +1,53 @@
 import 'package:flutter/material.dart';
 
+import '../../presentation/auth/forget_password/forget_password_view.dart';
+import '../../presentation/auth/login/login_view.dart';
+import '../../presentation/auth/reset_password/reset_password_view.dart';
+import '../../presentation/auth/sign_up/sign_up_view.dart';
+import '../../presentation/auth/verification_code/verification_code_view.dart';
 import 'app_routes.dart';
 
-/// Routing skeleton (Navigator 1.0 / `onGenerateRoute`), matching the
-/// reference architecture's preference for plain Flutter APIs over an
-/// extra routing package.
-///
-/// No feature screens exist yet, so every route currently resolves to
-/// [_NotImplementedPage] — a scaffolding placeholder, not a designed
-/// screen. Each Phase 2+ module replaces its own `case` here with the real
-/// widget as it gets built.
+/// Routing (Navigator 1.0 / `onGenerateRoute`), matching the reference
+/// architecture's preference for plain Flutter APIs.
 class AppRouter {
   AppRouter._();
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
+      // --- Auth flow ---
       case AppRoutes.splash:
+        // For now, splash redirects to login
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (_) => const LoginView(),
+        );
       case AppRoutes.login:
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (_) => const LoginView(),
+        );
       case AppRoutes.signUp:
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (_) => const SignUpView(),
+        );
       case AppRoutes.forgetPassword:
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (_) => const ForgetPasswordView(),
+        );
       case AppRoutes.verificationCode:
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (_) => const VerificationCodeView(),
+        );
       case AppRoutes.resetPassword:
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (_) => const ResetPasswordView(),
+        );
+
+      // --- Screens not yet implemented ---
       case AppRoutes.home:
       case AppRoutes.examDetails:
       case AppRoutes.startExam:
@@ -35,7 +62,8 @@ class AppRouter {
       default:
         return MaterialPageRoute(
           settings: settings,
-          builder: (_) => _NotImplementedPage(routeName: settings.name ?? 'unknown'),
+          builder: (_) =>
+              _NotImplementedPage(routeName: settings.name ?? 'unknown'),
         );
     }
   }

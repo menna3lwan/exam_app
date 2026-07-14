@@ -29,8 +29,8 @@ extension GetItInjectableX on _i174.GetIt {
     final gh = _i526.GetItHelper(this, environment, environmentFilter);
     final networkModule = _$NetworkModule();
     final assetBundleModule = _$AssetBundleModule();
-    gh.singleton<_i361.Dio>(networkModule.provideDio());
-    gh.singleton<_i398.AssetBundle>(assetBundleModule.provideAssetBundle());
+    gh.singleton<_i361.Dio>(() => networkModule.provideDio());
+    gh.singleton<_i398.AssetBundle>(() => assetBundleModule.provideAssetBundle());
     return this;
   }
 }
