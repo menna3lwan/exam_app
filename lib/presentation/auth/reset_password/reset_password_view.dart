@@ -84,7 +84,6 @@ class _ResetPasswordViewState extends State<ResetPasswordView> {
           ),
           child: Form(
             key: _formKey,
-            autovalidateMode: AutovalidateMode.onUserInteraction,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -117,9 +116,11 @@ class _ResetPasswordViewState extends State<ResetPasswordView> {
                   onFieldSubmitted: (_) =>
                       _confirmPasswordFocus.requestFocus(),
                 ),
-                const SizedBox(height: AppDimensions.sm),
-                // ---- Password requirements checklist ----
-                PasswordRequirements(password: _passwordController.text),
+                // ---- Password requirements checklist (visible once user starts typing) ----
+                if (_passwordController.text.isNotEmpty) ...[
+                  const SizedBox(height: AppDimensions.sm),
+                  PasswordRequirements(password: _passwordController.text),
+                ],
                 const SizedBox(height: AppDimensions.lg),
                 // ---- Confirm Password ----
                 AppPasswordField(

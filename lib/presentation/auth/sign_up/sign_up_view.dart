@@ -100,7 +100,6 @@ class _SignUpViewState extends State<SignUpView> {
           ),
           child: Form(
             key: _formKey,
-            autovalidateMode: AutovalidateMode.onUserInteraction,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -188,9 +187,11 @@ class _SignUpViewState extends State<SignUpView> {
                     ),
                   ],
                 ),
-                const SizedBox(height: AppDimensions.sm),
-                // ---- Password requirements checklist ----
-                PasswordRequirements(password: _passwordController.text),
+                // ---- Password requirements checklist (visible once user starts typing) ----
+                if (_passwordController.text.isNotEmpty) ...[
+                  const SizedBox(height: AppDimensions.sm),
+                  PasswordRequirements(password: _passwordController.text),
+                ],
                 const SizedBox(height: AppDimensions.lg),
                 // ---- Phone number (full width) ----
                 AppTextField(

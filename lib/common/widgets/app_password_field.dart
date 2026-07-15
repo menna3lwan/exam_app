@@ -42,6 +42,7 @@ class _AppPasswordFieldState extends State<AppPasswordField> {
       keyboardType: TextInputType.visiblePassword,
       textInputAction: widget.textInputAction,
       obscureText: _obscured,
+      autovalidateMode: AutovalidateMode.onUserInteraction,
       validator: widget.validator,
       onChanged: widget.onChanged,
       onFieldSubmitted: widget.onFieldSubmitted,

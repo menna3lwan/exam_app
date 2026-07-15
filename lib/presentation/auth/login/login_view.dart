@@ -66,7 +66,6 @@ class _LoginViewState extends State<LoginView> {
           ),
           child: Form(
             key: _formKey,
-            autovalidateMode: AutovalidateMode.onUserInteraction,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
