@@ -32,6 +32,8 @@ dependencies:
   # Figma type styles use "Inter" (weights 400/500). Loaded via google_fonts
   # instead of bundling .ttf assets, since no font files were provided yet.
   google_fonts: ^6.2.1
+  # SVG icon rendering for Figma-exported icon assets.
+  flutter_svg: ^2.0.17
   # Required by flutter_localizations / ARB-based localization foundation.
   # Left unpinned deliberately: flutter_localizations (SDK) pins an exact
   # intl version per Flutter release, and adding our own caret constraint
