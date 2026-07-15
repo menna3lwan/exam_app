@@ -5,6 +5,7 @@ import '../../presentation/auth/login/login_view.dart';
 import '../../presentation/auth/reset_password/reset_password_view.dart';
 import '../../presentation/auth/sign_up/sign_up_view.dart';
 import '../../presentation/auth/verification_code/verification_code_view.dart';
+import '../../presentation/home/home_view.dart';
 import 'app_routes.dart';
 
 /// Routing (Navigator 1.0 / `onGenerateRoute`), matching the reference
@@ -47,8 +48,14 @@ class AppRouter {
           builder: (_) => const ResetPasswordView(),
         );
 
-      // --- Screens not yet implemented ---
+      // --- Home (bottom nav shell) ---
       case AppRoutes.home:
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (_) => const HomeView(),
+        );
+
+      // --- Screens not yet implemented ---
       case AppRoutes.examDetails:
       case AppRoutes.startExam:
       case AppRoutes.examSession:
