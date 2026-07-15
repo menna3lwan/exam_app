@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../common/utils/app_snackbar.dart';
 import '../../../common/utils/validators.dart';
 import '../../../common/widgets/app_button.dart';
 import '../../../common/widgets/app_text_field.dart';
@@ -18,6 +19,7 @@ class ForgetPasswordView extends StatefulWidget {
 class _ForgetPasswordViewState extends State<ForgetPasswordView> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -25,15 +27,24 @@ class _ForgetPasswordViewState extends State<ForgetPasswordView> {
     super.dispose();
   }
 
-  void _onContinue() {
-    if (_formKey.currentState?.validate() ?? false) {
-      // Phase 2: dispatch forgotPassword event to Cubit
-      Navigator.pushNamed(
-        context,
-        AppRoutes.verificationCode,
-        arguments: _emailController.text.trim(),
-      );
-    }
+  Future<void> _onContinue() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+
+    setState(() => _isLoading = true);
+
+    // Phase 2: replace with Cubit call
+    await Future.delayed(const Duration(milliseconds: 600));
+
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+
+    AppSnackBar.showSuccess(context, 'Verification code sent to your email');
+
+    Navigator.pushNamed(
+      context,
+      AppRoutes.verificationCode,
+      arguments: _emailController.text.trim(),
+    );
   }
 
   @override
@@ -51,6 +62,7 @@ class _ForgetPasswordViewState extends State<ForgetPasswordView> {
           ),
           child: Form(
             key: _formKey,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -87,6 +99,7 @@ class _ForgetPasswordViewState extends State<ForgetPasswordView> {
                 // ---- Continue button ----
                 AppButton(
                   label: 'Continue',
+                  isLoading: _isLoading,
                   onPressed: _onContinue,
                 ),
               ],

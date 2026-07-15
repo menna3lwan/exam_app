@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../common/utils/app_snackbar.dart';
 import '../../../common/utils/validators.dart';
 import '../../../common/widgets/app_button.dart';
 import '../../../common/widgets/app_password_field.dart';
@@ -20,20 +21,34 @@ class _LoginViewState extends State<LoginView> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _passwordFocusNode = FocusNode();
   bool _rememberMe = false;
+  bool _isLoading = false;
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _passwordFocusNode.dispose();
     super.dispose();
   }
 
-  void _onLogin() {
-    if (_formKey.currentState?.validate() ?? false) {
-      // Phase 2: dispatch sign-in event to Cubit
-      Navigator.pushReplacementNamed(context, AppRoutes.home);
-    }
+  Future<void> _onLogin() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+
+    setState(() => _isLoading = true);
+
+    // Phase 2: replace with Cubit call
+    await Future.delayed(const Duration(milliseconds: 600));
+
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+
+    AppSnackBar.showSuccess(context, 'Login successful!');
+
+    await Future.delayed(const Duration(milliseconds: 400));
+    if (!mounted) return;
+    Navigator.pushReplacementNamed(context, AppRoutes.home);
   }
 
   @override
@@ -51,6 +66,7 @@ class _LoginViewState extends State<LoginView> {
           ),
           child: Form(
             key: _formKey,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -63,6 +79,8 @@ class _LoginViewState extends State<LoginView> {
                   keyboardType: TextInputType.emailAddress,
                   textInputAction: TextInputAction.next,
                   validator: Validators.email,
+                  onFieldSubmitted: (_) =>
+                      _passwordFocusNode.requestFocus(),
                 ),
                 const SizedBox(height: AppDimensions.lg),
                 // ---- Password ----
@@ -70,6 +88,7 @@ class _LoginViewState extends State<LoginView> {
                   label: 'Password',
                   hintText: 'Enter you password',
                   controller: _passwordController,
+                  focusNode: _passwordFocusNode,
                   textInputAction: TextInputAction.done,
                   validator: Validators.password,
                   onFieldSubmitted: (_) => _onLogin(),
@@ -116,6 +135,7 @@ class _LoginViewState extends State<LoginView> {
                 // ---- Login button ----
                 AppButton(
                   label: 'Login',
+                  isLoading: _isLoading,
                   onPressed: _onLogin,
                 ),
                 const SizedBox(height: AppDimensions.md),

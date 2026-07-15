@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../../common/widgets/app_button.dart';
+import '../../../common/utils/app_snackbar.dart';
 import '../../../core/routing/app_routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimensions.dart';
@@ -23,6 +23,8 @@ class _VerificationCodeViewState extends State<VerificationCodeView> {
   late final List<TextEditingController> _controllers;
   late final List<FocusNode> _focusNodes;
   String? _email;
+  bool _isVerifying = false;
+  bool _hasError = false;
 
   @override
   void initState() {
@@ -52,9 +54,24 @@ class _VerificationCodeViewState extends State<VerificationCodeView> {
 
   bool get _isCodeComplete => _code.length == _codeLength;
 
-  void _onVerify() {
-    if (!_isCodeComplete) return;
-    // Phase 2: dispatch verifyResetCode event to Cubit
+  Future<void> _onVerify() async {
+    if (!_isCodeComplete || _isVerifying) return;
+
+    setState(() {
+      _isVerifying = true;
+      _hasError = false;
+    });
+
+    // Phase 2: replace with Cubit call to verify reset code
+    await Future.delayed(const Duration(milliseconds: 600));
+
+    if (!mounted) return;
+    setState(() => _isVerifying = false);
+
+    AppSnackBar.showSuccess(context, 'Code verified successfully');
+
+    await Future.delayed(const Duration(milliseconds: 300));
+    if (!mounted) return;
     Navigator.pushNamed(
       context,
       AppRoutes.resetPassword,
@@ -62,7 +79,15 @@ class _VerificationCodeViewState extends State<VerificationCodeView> {
     );
   }
 
+  void _onResendCode() {
+    // Phase 2: dispatch resend code event to Cubit
+    AppSnackBar.showSuccess(context, 'Verification code resent');
+  }
+
   void _onDigitChanged(int index, String value) {
+    // Clear error state when user starts re-entering
+    if (_hasError) setState(() => _hasError = false);
+
     if (value.length == 1 && index < _codeLength - 1) {
       _focusNodes[index + 1].requestFocus();
     }
@@ -118,36 +143,59 @@ class _VerificationCodeViewState extends State<VerificationCodeView> {
                   (index) => _OtpBox(
                     controller: _controllers[index],
                     focusNode: _focusNodes[index],
+                    hasError: _hasError,
                     onChanged: (value) => _onDigitChanged(index, value),
                   ),
                 ),
               ),
+              if (_hasError) ...[
+                const SizedBox(height: AppDimensions.sm),
+                Text(
+                  'Invalid verification code',
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: AppColors.error,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
               const SizedBox(height: AppDimensions.lg),
-              // ---- Resend link ----
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    "Didn't receive code? ",
-                    style: AppTextStyles.bodySmall.copyWith(
-                      color: AppColors.black,
+              // ---- Loading indicator ----
+              if (_isVerifying)
+                const Center(
+                  child: SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.5,
+                      color: AppColors.primary,
                     ),
                   ),
-                  GestureDetector(
-                    onTap: () {
-                      // Phase 2: resend code logic
-                    },
-                    child: Text(
-                      'Resend',
+                ),
+              if (!_isVerifying) ...[
+                // ---- Resend link ----
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "Didn't receive code? ",
                       style: AppTextStyles.bodySmall.copyWith(
-                        color: AppColors.primary,
-                        decoration: TextDecoration.underline,
-                        decorationColor: AppColors.primary,
+                        color: AppColors.black,
                       ),
                     ),
-                  ),
-                ],
-              ),
+                    GestureDetector(
+                      onTap: _onResendCode,
+                      child: Text(
+                        'Resend',
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: AppColors.primary,
+                          decoration: TextDecoration.underline,
+                          decorationColor: AppColors.primary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ],
           ),
         ),
@@ -160,22 +208,24 @@ class _VerificationCodeViewState extends State<VerificationCodeView> {
 /// - Light blue/lavender background (#EDEFF3)
 /// - Rounded corners (~10px)
 /// - No visible border in default state
-/// - Red border on error state
+/// - Primary border on focus
+/// - Red border on error
 class _OtpBox extends StatelessWidget {
   final TextEditingController controller;
   final FocusNode focusNode;
+  final bool hasError;
   final ValueChanged<String> onChanged;
 
   const _OtpBox({
     required this.controller,
     required this.focusNode,
+    required this.hasError,
     required this.onChanged,
   });
 
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.sizeOf(context).width;
-    // 4 boxes with padding: (screenWidth - 48 horizontal padding - 3*16 gaps) / 4
     final boxSize = (screenWidth - 48 - 48) / 4;
 
     return SizedBox(
@@ -200,7 +250,9 @@ class _OtpBox extends StatelessWidget {
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
-            borderSide: BorderSide.none,
+            borderSide: hasError
+                ? const BorderSide(color: AppColors.error, width: 1.5)
+                : BorderSide.none,
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
