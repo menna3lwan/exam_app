@@ -8,6 +8,8 @@ import '../../../../core/routing/route_arguments.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../data/models/exam_model.dart';
+import '../../../../data/models/subject_model.dart';
 import '../cubits/subject_exams/subject_exams_cubit.dart';
 import '../cubits/subject_exams/subject_exams_state.dart';
 
@@ -57,7 +59,7 @@ class _SubjectExamsBody extends StatelessWidget {
             SubjectExamsLoaded(:final groupedExams, :final subject) =>
               groupedExams.isEmpty
                   ? _buildEmptyState()
-                  : _buildExamList(context, groupedExams, subject, state),
+                  : _buildExamList(context, groupedExams, subject),
           };
         },
       ),
@@ -82,9 +84,8 @@ class _SubjectExamsBody extends StatelessWidget {
 
   Widget _buildExamList(
     BuildContext context,
-    Map<String, List<dynamic>> grouped,
-    dynamic subject,
-    SubjectExamsLoaded loaded,
+    Map<String, List<ExamModel>> grouped,
+    SubjectModel subject,
   ) {
     return ListView.builder(
       padding: const EdgeInsets.symmetric(
@@ -111,13 +112,13 @@ class _SubjectExamsBody extends StatelessWidget {
                 padding: const EdgeInsets.only(bottom: AppDimensions.sm),
                 child: ExamCard(
                   exam: exam,
-                  subjectIcon: loaded.subject.icon,
+                  subjectIcon: subject.icon,
                   onTap: () => Navigator.pushNamed(
                     context,
                     AppRoutes.startExam,
                     arguments: StartExamArgs(
                       exam: exam,
-                      subject: loaded.subject,
+                      subject: subject,
                     ),
                   ),
                 ),

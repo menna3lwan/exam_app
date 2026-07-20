@@ -61,7 +61,7 @@ class _StartExamBody extends StatelessWidget {
                 ),
               );
             case StartExamError(:final message):
-              AppSnackbar.showError(context, message);
+              AppSnackBar.showError(context, message);
             default:
               break;
           }
