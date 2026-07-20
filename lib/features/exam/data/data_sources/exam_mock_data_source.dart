@@ -55,17 +55,6 @@ class ExamMockDataSource {
     );
   }
 
-  /// Groups exams for a subject by title.
-  Map<String, List<ExamModel>> examsGroupedByTitle(String subjectId) {
-    final subjectExams =
-        _exams.where((e) => e.subject == subjectId).toList();
-    final grouped = <String, List<ExamModel>>{};
-    for (final exam in subjectExams) {
-      grouped.putIfAbsent(exam.title, () => []).add(exam);
-    }
-    return grouped;
-  }
-
   // ── Static mock data ──
 
   static const _exams = [

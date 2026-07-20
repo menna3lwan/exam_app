@@ -45,6 +45,7 @@ class ExamSessionCubit extends Cubit<ExamSessionState> {
   void _startTimer() {
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (isClosed) return;
       final current = state;
       if (current is! ExamSessionActive) return;
 
@@ -95,20 +96,12 @@ class ExamSessionCubit extends Cubit<ExamSessionState> {
 
     _timer?.cancel();
 
-    final answersMap = <String, String>{};
-    for (int i = 0; i < current.questions.length; i++) {
-      final answer = current.answers[i];
-      if (answer != null) {
-        answersMap[current.questions[i].id] = answer;
-      }
-    }
-
     final totalTime = current.exam.duration * 60;
     final timeSpent = totalTime - current.remainingSeconds;
 
     final result = await _submitExamUseCase(
       examId: current.exam.id,
-      answers: answersMap,
+      answers: _buildAnswersMap(current),
       timeSpentSeconds: timeSpent,
     );
 
@@ -127,17 +120,9 @@ class ExamSessionCubit extends Cubit<ExamSessionState> {
   }
 
   Future<void> _onTimeOut(ExamSessionActive current) async {
-    final answersMap = <String, String>{};
-    for (int i = 0; i < current.questions.length; i++) {
-      final answer = current.answers[i];
-      if (answer != null) {
-        answersMap[current.questions[i].id] = answer;
-      }
-    }
-
     final result = await _submitExamUseCase(
       examId: current.exam.id,
-      answers: answersMap,
+      answers: _buildAnswersMap(current),
       timeSpentSeconds: current.exam.duration * 60,
     );
 
@@ -151,6 +136,17 @@ class ExamSessionCubit extends Cubit<ExamSessionState> {
       case Failure(:final message):
         emit(ExamSessionError(message ?? 'Submission failed'));
     }
+  }
+
+  Map<String, String> _buildAnswersMap(ExamSessionActive current) {
+    final map = <String, String>{};
+    for (int i = 0; i < current.questions.length; i++) {
+      final answer = current.answers[i];
+      if (answer != null) {
+        map[current.questions[i].id] = answer;
+      }
+    }
+    return map;
   }
 
   void leaveExam() {

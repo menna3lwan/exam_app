@@ -65,7 +65,7 @@ class _ExamSessionBody extends StatelessWidget {
         Navigator.pushReplacementNamed(
           context,
           AppRoutes.examResult,
-          arguments: result,
+          arguments: ExamResultArgs(result: result),
         );
       case ExamSessionTimedOut(:final result):
         _showTimeOutDialog(context).then((_) {
@@ -73,7 +73,7 @@ class _ExamSessionBody extends StatelessWidget {
             Navigator.pushReplacementNamed(
               context,
               AppRoutes.examResult,
-              arguments: result,
+              arguments: ExamResultArgs(result: result),
             );
           }
         });

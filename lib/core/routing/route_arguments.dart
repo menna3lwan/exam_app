@@ -1,4 +1,5 @@
 import '../../data/models/exam_model.dart';
+import '../../data/models/exam_result_model.dart';
 import '../../data/models/question_model.dart';
 import '../../data/models/subject_model.dart';
 
@@ -24,6 +25,11 @@ class ExamSessionArgs {
     required this.subject,
     required this.questions,
   });
+}
+
+class ExamResultArgs {
+  final ExamResultModel result;
+  const ExamResultArgs({required this.result});
 }
 
 /// Auth flow: email passed through forget → verify → reset chain.
