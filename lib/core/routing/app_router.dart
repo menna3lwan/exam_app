@@ -5,7 +5,10 @@ import '../../presentation/auth/login/login_view.dart';
 import '../../presentation/auth/reset_password/reset_password_view.dart';
 import '../../presentation/auth/sign_up/sign_up_view.dart';
 import '../../presentation/auth/verification_code/verification_code_view.dart';
+import '../../presentation/exam/exam_session/exam_session_view.dart';
+import '../../presentation/exam/start_exam/start_exam_view.dart';
 import '../../presentation/home/home_view.dart';
+import '../../presentation/home/subject_exams/subject_exams_view.dart';
 import 'app_routes.dart';
 
 /// Routing (Navigator 1.0 / `onGenerateRoute`), matching the reference
@@ -55,10 +58,29 @@ class AppRouter {
           builder: (_) => const HomeView(),
         );
 
+      // --- Subject exams list ---
+      case AppRoutes.subjectExams:
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (_) => const SubjectExamsView(),
+        );
+
+      // --- Start exam (instructions) ---
+      case AppRoutes.startExam:
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (_) => const StartExamView(),
+        );
+
+      // --- Exam session (questions + timer) ---
+      case AppRoutes.examSession:
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (_) => const ExamSessionView(),
+        );
+
       // --- Screens not yet implemented ---
       case AppRoutes.examDetails:
-      case AppRoutes.startExam:
-      case AppRoutes.examSession:
       case AppRoutes.examResult:
       case AppRoutes.results:
       case AppRoutes.profile:

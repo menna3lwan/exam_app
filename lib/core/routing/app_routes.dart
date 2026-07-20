@@ -19,6 +19,7 @@ class AppRoutes {
 
   // Home (Phase 3)
   static const String home = '/home';
+  static const String subjectExams = '/subject-exams';
 
   // Exam flow (Phase 4)
   static const String examDetails = '/exam-details';
