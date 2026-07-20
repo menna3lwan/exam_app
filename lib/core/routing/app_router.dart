@@ -5,6 +5,8 @@ import '../../features/auth/presentation/views/login_view.dart';
 import '../../features/auth/presentation/views/reset_password_view.dart';
 import '../../features/auth/presentation/views/sign_up_view.dart';
 import '../../features/auth/presentation/views/verification_code_view.dart';
+import '../../features/exam/presentation/views/answers_review_view.dart';
+import '../../features/exam/presentation/views/exam_result_view.dart';
 import '../../features/exam/presentation/views/exam_session_view.dart';
 import '../../features/exam/presentation/views/start_exam_view.dart';
 import '../../features/exam/presentation/views/subject_exams_view.dart';
@@ -41,9 +43,13 @@ class AppRouter {
       case AppRoutes.examSession:
         return _page(settings, const ExamSessionView());
 
+      case AppRoutes.examResult:
+        return _page(settings, const ExamResultView());
+      case AppRoutes.answersReview:
+        return _page(settings, const AnswersReviewView());
+
       // --- Not yet implemented ---
       case AppRoutes.examDetails:
-      case AppRoutes.examResult:
       case AppRoutes.results:
       case AppRoutes.profile:
         return _page(

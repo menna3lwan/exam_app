@@ -26,11 +26,13 @@ import '../../features/home/data/repos/home_repository_impl.dart';
 import '../../features/home/domain/repos/home_repository.dart';
 import '../../features/home/domain/use_cases/get_subjects_use_case.dart';
 import '../../features/home/presentation/cubits/explore/explore_cubit.dart';
+import '../../features/home/presentation/cubits/results/results_cubit.dart';
 
 // ── Exam feature ──
 import '../../features/exam/data/data_sources/exam_mock_data_source.dart';
 import '../../features/exam/data/repos/exam_repository_impl.dart';
 import '../../features/exam/domain/repos/exam_repository.dart';
+import '../../features/exam/domain/use_cases/get_exam_history_use_case.dart';
 import '../../features/exam/domain/use_cases/get_exams_use_case.dart';
 import '../../features/exam/domain/use_cases/get_questions_use_case.dart';
 import '../../features/exam/domain/use_cases/submit_exam_use_case.dart';
@@ -102,6 +104,7 @@ void configureDependencies() {
   getIt.registerFactory(() => GetExamsUseCase(getIt<ExamRepository>()));
   getIt.registerFactory(() => GetQuestionsUseCase(getIt<ExamRepository>()));
   getIt.registerFactory(() => SubmitExamUseCase(getIt<ExamRepository>()));
+  getIt.registerFactory(() => GetExamHistoryUseCase(getIt<ExamRepository>()));
 
   getIt.registerFactory(
     () => SubjectExamsCubit(getIt<GetExamsUseCase>()),
@@ -111,6 +114,11 @@ void configureDependencies() {
   );
   getIt.registerFactory(
     () => ExamSessionCubit(getIt<SubmitExamUseCase>()),
+  );
+
+  // ── Results (Home tab) ──
+  getIt.registerFactory(
+    () => ResultsCubit(getIt<GetExamHistoryUseCase>()),
   );
 }
 

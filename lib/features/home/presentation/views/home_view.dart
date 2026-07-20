@@ -7,6 +7,7 @@ import '../../../../core/di/di.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../cubits/explore/explore_cubit.dart';
+import '../cubits/results/results_cubit.dart';
 import 'tabs/explore/explore_tab.dart';
 import 'tabs/profile/profile_tab.dart';
 import 'tabs/result/result_tab.dart';
@@ -24,6 +25,9 @@ class HomeView extends StatelessWidget {
       providers: [
         BlocProvider(
           create: (_) => getIt<ExploreCubit>()..loadSubjects(),
+        ),
+        BlocProvider(
+          create: (_) => getIt<ResultsCubit>()..loadHistory(),
         ),
       ],
       child: const _HomeShell(),

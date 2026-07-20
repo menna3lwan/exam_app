@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../common/utils/app_snackbar.dart';
 import '../../../../common/widgets/answer_option_card.dart';
 import '../../../../common/widgets/app_button.dart';
+import '../../../../core/constants/app_assets.dart';
 import '../../../../core/di/di.dart';
 import '../../../../core/routing/app_routes.dart';
 import '../../../../core/routing/route_arguments.dart';
@@ -61,19 +62,35 @@ class _ExamSessionBody extends StatelessWidget {
 
   void _handleOneTimeEvents(BuildContext context, ExamSessionState state) {
     switch (state) {
-      case ExamSessionSubmitted(:final result):
+      case ExamSessionSubmitted(
+        :final result,
+        :final questions,
+        :final userAnswers,
+      ):
         Navigator.pushReplacementNamed(
           context,
           AppRoutes.examResult,
-          arguments: ExamResultArgs(result: result),
+          arguments: ExamResultArgs(
+            result: result,
+            questions: questions,
+            userAnswers: userAnswers,
+          ),
         );
-      case ExamSessionTimedOut(:final result):
+      case ExamSessionTimedOut(
+        :final result,
+        :final questions,
+        :final userAnswers,
+      ):
         _showTimeOutDialog(context).then((_) {
           if (context.mounted) {
             Navigator.pushReplacementNamed(
               context,
               AppRoutes.examResult,
-              arguments: ExamResultArgs(result: result),
+              arguments: ExamResultArgs(
+                result: result,
+                questions: questions,
+                userAnswers: userAnswers,
+              ),
             );
           }
         });
@@ -84,21 +101,49 @@ class _ExamSessionBody extends StatelessWidget {
     }
   }
 
+  /// Figma "Time out" dialog: sand clock illustration + red title + blue button.
   Future<void> _showTimeOutDialog(BuildContext context) {
     return showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => AlertDialog(
-        title: const Text('Time\'s Up!'),
-        content: const Text(
-          'Your exam time has expired. Your answers have been submitted automatically.',
+      builder: (_) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppDimensions.md),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('View Results'),
+        child: Padding(
+          padding: const EdgeInsets.all(AppDimensions.lg),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset(
+                    AppAssets.illustrationSandClock,
+                    width: 64,
+                    height: 64,
+                  ),
+                  const SizedBox(width: AppDimensions.sm),
+                  Text(
+                    'Time out !!',
+                    style: AppTextStyles.titleLarge.copyWith(
+                      color: AppColors.error,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppDimensions.lg),
+              SizedBox(
+                width: double.infinity,
+                child: AppButton(
+                  label: 'View score',
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

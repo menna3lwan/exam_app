@@ -61,13 +61,17 @@ class ExamSessionActive extends ExamSessionState {
 /// One-time event: exam submitted successfully.
 class ExamSessionSubmitted extends ExamSessionState {
   final ExamResultModel result;
-  const ExamSessionSubmitted(this.result);
+  final List<QuestionModel> questions;
+  final List<String?> userAnswers;
+  const ExamSessionSubmitted(this.result, this.questions, this.userAnswers);
 }
 
 /// One-time event: timer expired.
 class ExamSessionTimedOut extends ExamSessionState {
   final ExamResultModel result;
-  const ExamSessionTimedOut(this.result);
+  final List<QuestionModel> questions;
+  final List<String?> userAnswers;
+  const ExamSessionTimedOut(this.result, this.questions, this.userAnswers);
 }
 
 class ExamSessionError extends ExamSessionState {

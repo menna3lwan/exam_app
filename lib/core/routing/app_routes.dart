@@ -26,6 +26,7 @@ class AppRoutes {
   static const String startExam = '/start-exam';
   static const String examSession = '/exam-session';
   static const String examResult = '/exam-result';
+  static const String answersReview = '/answers-review';
 
   // Results & Profile (Phase 5)
   static const String results = '/results';

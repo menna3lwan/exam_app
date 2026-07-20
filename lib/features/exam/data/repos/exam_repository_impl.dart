@@ -1,5 +1,6 @@
 import '../../../../core/network/api_results.dart';
 import '../../../../core/network/safe_call.dart';
+import '../../../../data/models/exam_history_model.dart';
 import '../../../../data/models/exam_model.dart';
 import '../../../../data/models/exam_result_model.dart';
 import '../../../../data/models/question_model.dart';
@@ -40,6 +41,14 @@ class ExamRepositoryImpl implements ExamRepository {
         timeSpentSeconds: timeSpentSeconds,
       );
       return Success(result);
+    });
+  }
+
+  @override
+  Future<ApiResults<List<ExamHistoryModel>>> getExamHistory() {
+    return safeCall(() async {
+      final history = await _dataSource.getExamHistory();
+      return Success(history);
     });
   }
 }

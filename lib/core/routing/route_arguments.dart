@@ -29,7 +29,22 @@ class ExamSessionArgs {
 
 class ExamResultArgs {
   final ExamResultModel result;
-  const ExamResultArgs({required this.result});
+  final List<QuestionModel> questions;
+  final List<String?> userAnswers;
+  const ExamResultArgs({
+    required this.result,
+    required this.questions,
+    required this.userAnswers,
+  });
+}
+
+class AnswersReviewArgs {
+  final List<QuestionModel> questions;
+  final List<String?> userAnswers;
+  const AnswersReviewArgs({
+    required this.questions,
+    required this.userAnswers,
+  });
 }
 
 /// Auth flow: email passed through forget → verify → reset chain.

@@ -110,7 +110,11 @@ class ExamSessionCubit extends Cubit<ExamSessionState> {
     switch (result) {
       case Success(:final data):
         if (data != null) {
-          emit(ExamSessionSubmitted(data));
+          emit(ExamSessionSubmitted(
+            data,
+            current.questions,
+            List.unmodifiable(current.answers),
+          ));
         } else {
           emit(const ExamSessionError('No result returned'));
         }
@@ -131,7 +135,11 @@ class ExamSessionCubit extends Cubit<ExamSessionState> {
     switch (result) {
       case Success(:final data):
         if (data != null) {
-          emit(ExamSessionTimedOut(data));
+          emit(ExamSessionTimedOut(
+            data,
+            current.questions,
+            List.unmodifiable(current.answers),
+          ));
         }
       case Failure(:final message):
         emit(ExamSessionError(message ?? 'Submission failed'));

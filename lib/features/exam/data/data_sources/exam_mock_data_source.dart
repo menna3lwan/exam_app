@@ -1,3 +1,4 @@
+import '../../../../data/models/exam_history_model.dart';
 import '../../../../data/models/exam_model.dart';
 import '../../../../data/models/exam_result_model.dart';
 import '../../../../data/models/question_model.dart';
@@ -55,6 +56,11 @@ class ExamMockDataSource {
     );
   }
 
+  Future<List<ExamHistoryModel>> getExamHistory() async {
+    await Future.delayed(_mockDelay);
+    return _examHistory;
+  }
+
   // ── Static mock data ──
 
   static const _exams = [
@@ -76,5 +82,12 @@ class ExamMockDataSource {
     QuestionModel(id: 'q3', question: 'Choose the correct past tense of "run".', a1: 'Runned', a2: 'Ran', a3: 'Runed', a4: 'Running', correct: 'A2', subject: 'subj_lang', exam: 'exam_eng_1'),
     QuestionModel(id: 'q4', question: 'Which word is a synonym for "happy"?', a1: 'Sad', a2: 'Angry', a3: 'Joyful', a4: 'Tired', correct: 'A3', subject: 'subj_lang', exam: 'exam_eng_1'),
     QuestionModel(id: 'q5', question: 'Select the sentence with correct subject-verb agreement.', a1: 'The dogs runs fast.', a2: 'The dogs run fast.', a3: 'The dog run fast.', a4: 'The dogs running fast.', correct: 'A2', subject: 'subj_lang', exam: 'exam_eng_1'),
+  ];
+
+  static const _examHistory = [
+    ExamHistoryModel(id: 'h1', examTitle: 'High level', subjectName: 'Language', numberOfQuestions: 20, durationMinutes: 30, correctAnswers: 18, timeSpentMinutes: 25),
+    ExamHistoryModel(id: 'h2', examTitle: 'High level', subjectName: 'Language', numberOfQuestions: 20, durationMinutes: 30, correctAnswers: 18, timeSpentMinutes: 25),
+    ExamHistoryModel(id: 'h3', examTitle: 'Algebra', subjectName: 'Math', numberOfQuestions: 20, durationMinutes: 30, correctAnswers: 18, timeSpentMinutes: 25),
+    ExamHistoryModel(id: 'h4', examTitle: 'Algebra', subjectName: 'Math', numberOfQuestions: 20, durationMinutes: 30, correctAnswers: 18, timeSpentMinutes: 25),
   ];
 }

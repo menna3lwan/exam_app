@@ -1,4 +1,5 @@
 import '../../../../core/network/api_results.dart';
+import '../../../../data/models/exam_history_model.dart';
 import '../../../../data/models/exam_model.dart';
 import '../../../../data/models/exam_result_model.dart';
 import '../../../../data/models/question_model.dart';
@@ -14,4 +15,6 @@ abstract class ExamRepository {
     required Map<String, String> answers, // questionId → selected key
     required int timeSpentSeconds,
   });
+
+  Future<ApiResults<List<ExamHistoryModel>>> getExamHistory();
 }
