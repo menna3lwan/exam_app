@@ -1,23 +1,18 @@
-/// Repo-facing result wrapper.
+/// Repo-facing result wrapper (sealed, immutable).
 ///
-/// Carried over from the reference architecture unchanged. Repository
-/// implementations return [ApiResults], which the presentation layer
-/// (Cubit) pattern-matches into [Resources] for the UI.
-library;
-
+/// Repository implementations return [ApiResults], which the presentation
+/// layer (Cubit) pattern-matches into UI state.
 sealed class ApiResults<T> {
-  String? message;
-  Exception? exception;
-  T? data;
-
-  ApiResults(this.message, this.exception, this.data);
+  const ApiResults();
 }
 
 class Success<T> extends ApiResults<T> {
-  Success(T? data) : super(null, null, data);
+  final T? data;
+  const Success(this.data);
 }
 
 class Failure<T> extends ApiResults<T> {
-  Failure(String? message, Exception? exception)
-    : super(message, exception, null);
+  final String? message;
+  final Exception? exception;
+  const Failure(this.message, [this.exception]);
 }

@@ -1,8 +1,7 @@
 /// Question entity matching the Postman `GET /questions?exam={id}` shape.
 ///
 /// Fixed 4-option MCQ: A1–A4 are the choices, `correct` holds which key
-/// ("A1"–"A4") is the right answer. Confirmed from the `POST /questions`
-/// (admin) request body.
+/// ("A1"–"A4") is the right answer.
 class QuestionModel {
   final String id;
   final String question;
@@ -33,4 +32,30 @@ class QuestionModel {
         MapEntry('A3', a3),
         MapEntry('A4', a4),
       ];
+
+  factory QuestionModel.fromJson(Map<String, dynamic> json) {
+    return QuestionModel(
+      id: json['_id'] as String? ?? '',
+      question: json['question'] as String? ?? '',
+      a1: json['A1'] as String? ?? '',
+      a2: json['A2'] as String? ?? '',
+      a3: json['A3'] as String? ?? '',
+      a4: json['A4'] as String? ?? '',
+      correct: json['correct'] as String? ?? '',
+      subject: json['subject'] as String? ?? '',
+      exam: json['exam'] as String? ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        '_id': id,
+        'question': question,
+        'A1': a1,
+        'A2': a2,
+        'A3': a3,
+        'A4': a4,
+        'correct': correct,
+        'subject': subject,
+        'exam': exam,
+      };
 }
