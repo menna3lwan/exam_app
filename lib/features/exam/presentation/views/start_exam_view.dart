@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../../common/widgets/app_button.dart';
 import '../../../../core/constants/app_assets.dart';
@@ -13,6 +14,14 @@ import '../../../../common/utils/app_snackbar.dart';
 import '../cubits/start_exam/start_exam_cubit.dart';
 import '../cubits/start_exam/start_exam_state.dart';
 
+/// Start-exam screen matching the Figma "Start exam" frame:
+///
+/// - Back chevron (no AppBar title)
+/// - Subject icon + subject name + duration
+/// - "High level | 20 Question"
+/// - Divider
+/// - "Instructions" section with bullet points
+/// - "Start" button
 class StartExamView extends StatelessWidget {
   const StartExamView({super.key});
 
@@ -43,10 +52,6 @@ class _StartExamBody extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.white,
-      appBar: AppBar(
-        leading: const BackButton(),
-        title: Text(args.subject.name),
-      ),
       body: BlocConsumer<StartExamCubit, StartExamState>(
         listener: (context, state) {
           switch (state) {
@@ -68,51 +73,164 @@ class _StartExamBody extends StatelessWidget {
         },
         builder: (context, state) {
           final isLoading = state is StartExamLoading;
-          return Padding(
-            padding: const EdgeInsets.all(AppDimensions.lg),
+          return SafeArea(
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Spacer(),
-                // ---- Illustration ----
-                Image.asset(
-                  AppAssets.illustrationExamClipboard,
-                  height: 180,
-                ),
-                const SizedBox(height: AppDimensions.lg),
-                // ---- Exam title ----
-                Text(
-                  args.exam.title,
-                  style: AppTextStyles.headlineSmall,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: AppDimensions.lg),
-                // ---- Info row ----
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _InfoChip(
-                      icon: Icons.help_outline,
-                      label: '${args.exam.numberOfQuestions} Questions',
+                // ---- Back button ----
+                Padding(
+                  padding: const EdgeInsets.only(
+                    left: AppDimensions.xs,
+                    top: AppDimensions.sm,
+                  ),
+                  child: IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: SvgPicture.asset(
+                      AppAssets.iconArrowBackIos,
+                      width: 24,
+                      height: 24,
+                      colorFilter: const ColorFilter.mode(
+                        AppColors.black,
+                        BlendMode.srcIn,
+                      ),
                     ),
-                    const SizedBox(width: AppDimensions.lg),
-                    _InfoChip(
-                      icon: Icons.timer_outlined,
-                      label: '${args.exam.duration} Minutes',
-                    ),
-                  ],
+                  ),
                 ),
-                const Spacer(),
-                // ---- Start button ----
-                AppButton(
-                  label: 'Start Exam',
-                  isLoading: isLoading,
-                  onPressed: isLoading
-                      ? null
-                      : () => context
-                            .read<StartExamCubit>()
-                            .loadQuestions(args.exam.id),
+
+                // ---- Subject info row ----
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppDimensions.lg,
+                  ),
+                  child: Row(
+                    children: [
+                      // Subject icon
+                      Image.asset(
+                        _subjectIcon(args.subject.name),
+                        width: 40,
+                        height: 40,
+                      ),
+                      const SizedBox(width: AppDimensions.sm),
+                      // Subject name
+                      Expanded(
+                        child: Text(
+                          args.subject.name,
+                          style: AppTextStyles.headlineSmall.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                      // Duration
+                      Text(
+                        '${args.exam.duration} Minutes',
+                        style: AppTextStyles.bodyMedium.copyWith(
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: AppDimensions.sm),
+
+                // ---- Level + question count ----
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppDimensions.lg,
+                  ),
+                  child: Row(
+                    children: [
+                      Text(
+                        args.exam.title,
+                        style: AppTextStyles.titleMedium.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppDimensions.sm,
+                        ),
+                        child: Text(
+                          '|',
+                          style: AppTextStyles.titleMedium.copyWith(
+                            color: AppColors.gray,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        '${args.exam.numberOfQuestions} Question',
+                        style: AppTextStyles.titleMedium.copyWith(
+                          color: AppColors.gray,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: AppDimensions.md),
+
+                // ---- Divider ----
+                const Divider(height: 1, thickness: 1),
+
+                const SizedBox(height: AppDimensions.lg),
+
+                // ---- Instructions section ----
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppDimensions.lg,
+                  ),
+                  child: Text(
+                    'Instructions',
+                    style: AppTextStyles.titleLarge.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                 ),
                 const SizedBox(height: AppDimensions.md),
+
+                // ---- Bullet points ----
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppDimensions.lg,
+                    ),
+                    child: ListView(
+                      children: const [
+                        _BulletPoint(
+                          'Lorem ipsum dolor sit amet consectetur.',
+                        ),
+                        _BulletPoint(
+                          'Lorem ipsum dolor sit amet consectetur.',
+                        ),
+                        _BulletPoint(
+                          'Lorem ipsum dolor sit amet consectetur.',
+                        ),
+                        _BulletPoint(
+                          'Lorem ipsum dolor sit amet consectetur.',
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // ---- Start button ----
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppDimensions.lg,
+                    AppDimensions.md,
+                    AppDimensions.lg,
+                    AppDimensions.lg,
+                  ),
+                  child: AppButton(
+                    label: 'Start',
+                    isLoading: isLoading,
+                    onPressed: isLoading
+                        ? null
+                        : () => context
+                              .read<StartExamCubit>()
+                              .loadQuestions(args.exam.id),
+                  ),
+                ),
               ],
             ),
           );
@@ -120,25 +238,53 @@ class _StartExamBody extends StatelessWidget {
       ),
     );
   }
+
+  /// Map subject name to its illustration asset.
+  String _subjectIcon(String subjectName) {
+    final lower = subjectName.toLowerCase();
+    if (lower.contains('lang')) return AppAssets.illustrationLanguageTranslator;
+    if (lower.contains('math')) return AppAssets.illustrationDraftingTools;
+    if (lower.contains('art')) return AppAssets.illustrationColorPalette;
+    if (lower.contains('sci') || lower.contains('bio') || lower.contains('chem')) {
+      return AppAssets.illustrationMicroscope;
+    }
+    return AppAssets.illustrationExamClipboard;
+  }
 }
 
-class _InfoChip extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  const _InfoChip({required this.icon, required this.label});
+class _BulletPoint extends StatelessWidget {
+  final String text;
+  const _BulletPoint(this.text);
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 20, color: AppColors.primary),
-        const SizedBox(width: AppDimensions.xs),
-        Text(
-          label,
-          style: AppTextStyles.labelMedium.copyWith(color: AppColors.primary),
-        ),
-      ],
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppDimensions.sm),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Container(
+              width: 6,
+              height: 6,
+              decoration: const BoxDecoration(
+                color: AppColors.black,
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+          const SizedBox(width: AppDimensions.sm),
+          Expanded(
+            child: Text(
+              text,
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: AppColors.gray,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

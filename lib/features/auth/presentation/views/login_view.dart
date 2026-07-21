@@ -41,6 +41,27 @@ class _LoginBodyState extends State<_LoginBody> {
   bool _rememberMe = false;
 
   @override
+  void initState() {
+    super.initState();
+    _emailController.addListener(_onFieldChanged);
+    _passwordController.addListener(_onFieldChanged);
+  }
+
+  void _onFieldChanged() => setState(() {});
+
+  /// Button is disabled when any field with content fails validation.
+  /// Empty fields don't disable (user hasn't filled them yet).
+  bool get _isButtonEnabled {
+    final email = _emailController.text;
+    final password = _passwordController.text;
+    if (email.isNotEmpty && Validators.email(email) != null) return false;
+    if (password.isNotEmpty && Validators.password(password) != null) {
+      return false;
+    }
+    return true;
+  }
+
+  @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
@@ -151,7 +172,7 @@ class _LoginBodyState extends State<_LoginBody> {
                     AppButton(
                       label: 'Login',
                       isLoading: state is LoginLoading,
-                      onPressed: _onLogin,
+                      onPressed: _isButtonEnabled ? _onLogin : null,
                     ),
                     const SizedBox(height: AppDimensions.md),
                     Row(

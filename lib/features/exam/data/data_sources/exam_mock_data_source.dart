@@ -6,6 +6,22 @@ import '../../../../data/models/question_model.dart';
 /// Mock data source for exam operations.
 ///
 /// Contains all exam/question mock data previously in MockData class.
+///
+/// ## Postman API contracts
+///
+/// **GET /exam?subject={subjectId}** — returns `{ exams: [...] }`
+///
+/// **GET /questions?exam={examId}** — returns `{ questions: [...] }`
+///   Each question has `{ _id, question, answers: {A1,A2,A3,A4}, correct, subject, exam }`
+///
+/// **POST /questions/check** — request body:
+///   `{ answers: [ { questionId: "...", correct: "A2" }, ... ] }`
+///   The `correct` field is the user's selected answer key.
+///   Note: the internal `Map<String, String>` (questionId → answer)
+///   must be transformed to this list-of-objects format in the remote
+///   data source.
+///
+/// **GET /exam/history** — returns `{ exams: [...] }`
 class ExamMockDataSource {
   static const _mockDelay = Duration(milliseconds: 400);
 
@@ -19,6 +35,11 @@ class ExamMockDataSource {
     return _questions.where((q) => q.exam == examId).toList();
   }
 
+  /// Submit answers for grading.
+  ///
+  /// [answers] maps `questionId → selected answer key` (e.g. `"A2"`).
+  /// The remote data source must transform this to the API format:
+  /// `[ { "questionId": "...", "correct": "A2" }, ... ]`
   Future<ExamResultModel> submitExam({
     required String examId,
     required Map<String, String> answers,

@@ -44,8 +44,20 @@ class _ResetPasswordBodyState extends State<_ResetPasswordBody> {
   @override
   void initState() {
     super.initState();
-    _passwordController.addListener(() => setState(() {}));
-    _confirmPasswordController.addListener(() => setState(() {}));
+    _passwordController.addListener(_onFieldChanged);
+    _confirmPasswordController.addListener(_onFieldChanged);
+  }
+
+  void _onFieldChanged() => setState(() {});
+
+  bool get _isButtonEnabled {
+    final p = _passwordController.text;
+    final cp = _confirmPasswordController.text;
+    if (p.isNotEmpty && Validators.password(p) != null) return false;
+    if (cp.isNotEmpty && Validators.confirmPassword(cp, p) != null) {
+      return false;
+    }
+    return true;
   }
 
   @override
@@ -188,7 +200,7 @@ class _ResetPasswordBodyState extends State<_ResetPasswordBody> {
                     AppButton(
                       label: 'Continue',
                       isLoading: state is ResetPasswordLoading,
-                      onPressed: _onContinue,
+                      onPressed: _isButtonEnabled ? _onContinue : null,
                     ),
                     const SizedBox(height: AppDimensions.lg),
                   ],

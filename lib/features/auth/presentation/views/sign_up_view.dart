@@ -55,8 +55,37 @@ class _SignUpBodyState extends State<_SignUpBody> {
   @override
   void initState() {
     super.initState();
-    _passwordController.addListener(() => setState(() {}));
-    _confirmPasswordController.addListener(() => setState(() {}));
+    _usernameController.addListener(_onFieldChanged);
+    _firstNameController.addListener(_onFieldChanged);
+    _lastNameController.addListener(_onFieldChanged);
+    _emailController.addListener(_onFieldChanged);
+    _passwordController.addListener(_onFieldChanged);
+    _confirmPasswordController.addListener(_onFieldChanged);
+    _phoneController.addListener(_onFieldChanged);
+  }
+
+  void _onFieldChanged() => setState(() {});
+
+  /// Button disabled when any non-empty field fails validation.
+  bool get _isButtonEnabled {
+    final u = _usernameController.text;
+    final f = _firstNameController.text;
+    final l = _lastNameController.text;
+    final e = _emailController.text;
+    final p = _passwordController.text;
+    final cp = _confirmPasswordController.text;
+    final ph = _phoneController.text;
+
+    if (u.isNotEmpty && Validators.username(u) != null) return false;
+    if (f.isNotEmpty && Validators.name(f, 'First name') != null) return false;
+    if (l.isNotEmpty && Validators.name(l, 'Last name') != null) return false;
+    if (e.isNotEmpty && Validators.email(e) != null) return false;
+    if (p.isNotEmpty && Validators.password(p) != null) return false;
+    if (cp.isNotEmpty && Validators.confirmPassword(cp, p) != null) {
+      return false;
+    }
+    if (ph.isNotEmpty && Validators.phone(ph) != null) return false;
+    return true;
   }
 
   @override
@@ -215,7 +244,7 @@ class _SignUpBodyState extends State<_SignUpBody> {
                     const SizedBox(height: AppDimensions.lg),
                     AppTextField(
                       label: 'Phone number',
-                      hintText: 'e.g. 01XXXXXXXXX',
+                      hintText: 'Enter phone number',
                       controller: _phoneController,
                       focusNode: _phoneFocus,
                       keyboardType: TextInputType.phone,
@@ -231,7 +260,7 @@ class _SignUpBodyState extends State<_SignUpBody> {
                     AppButton(
                       label: 'Signup',
                       isLoading: state is SignUpLoading,
-                      onPressed: _onSignUp,
+                      onPressed: _isButtonEnabled ? _onSignUp : null,
                     ),
                     const SizedBox(height: AppDimensions.md),
                     Row(

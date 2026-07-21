@@ -163,12 +163,22 @@ class _VerificationCodeBodyState extends State<_VerificationCodeBody> {
                   ),
                   if (_hasError) ...[
                     const SizedBox(height: AppDimensions.sm),
-                    Text(
-                      'Invalid verification code',
-                      style: AppTextStyles.bodySmall.copyWith(
-                        color: AppColors.error,
-                      ),
-                      textAlign: TextAlign.center,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          size: 16,
+                          color: AppColors.error,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Invalid code',
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: AppColors.error,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                   const SizedBox(height: AppDimensions.lg),

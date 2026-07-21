@@ -38,6 +38,18 @@ class _ForgetPasswordBodyState extends State<_ForgetPasswordBody> {
   final _emailController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    _emailController.addListener(() => setState(() {}));
+  }
+
+  bool get _isButtonEnabled {
+    final email = _emailController.text;
+    if (email.isNotEmpty && Validators.email(email) != null) return false;
+    return true;
+  }
+
+  @override
   void dispose() {
     _emailController.dispose();
     super.dispose();
@@ -118,7 +130,7 @@ class _ForgetPasswordBodyState extends State<_ForgetPasswordBody> {
                     AppButton(
                       label: 'Continue',
                       isLoading: state is ForgetPasswordLoading,
-                      onPressed: _onContinue,
+                      onPressed: _isButtonEnabled ? _onContinue : null,
                     ),
                   ],
                 ),

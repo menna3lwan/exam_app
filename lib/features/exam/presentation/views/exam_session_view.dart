@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../../common/utils/app_snackbar.dart';
 import '../../../../common/widgets/answer_option_card.dart';
@@ -151,6 +152,11 @@ class _ExamSessionBody extends StatelessWidget {
   Widget _buildActiveSession(BuildContext context, ExamSessionActive state) {
     final cubit = context.read<ExamSessionCubit>();
 
+    // F4: Timer color — GREEN normally, RED when < 60s
+    final timerColor = state.remainingSeconds <= 60
+        ? AppColors.error
+        : AppColors.success;
+
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
@@ -158,52 +164,51 @@ class _ExamSessionBody extends StatelessWidget {
       },
       child: Scaffold(
         backgroundColor: AppColors.white,
+        // F2: AppBar title is "Exam" (static), not "Question X"
         appBar: AppBar(
-          leading: BackButton(onPressed: () => _showLeaveDialog(context, cubit)),
-          title: Text('Question ${state.currentIndex + 1}'),
+          leading: BackButton(
+            onPressed: () => _showLeaveDialog(context, cubit),
+          ),
+          title: const Text('Exam'),
           actions: [
+            // F4+F6: Alarm clock illustration + green timer text, no container
             Padding(
               padding: const EdgeInsets.only(right: AppDimensions.md),
-              child: Center(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppDimensions.sm,
-                    vertical: AppDimensions.xs,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Image.asset(
+                    AppAssets.illustrationAlarmClock,
+                    width: 28,
+                    height: 28,
                   ),
-                  decoration: BoxDecoration(
-                    color: state.remainingSeconds <= 60
-                        ? AppColors.lightRed
-                        : AppColors.lightBlue,
-                    borderRadius: BorderRadius.circular(8),
+                  const SizedBox(width: 4),
+                  Text(
+                    state.timerText,
+                    style: AppTextStyles.titleMedium.copyWith(
+                      color: timerColor,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.timer_outlined,
-                        size: 18,
-                        color: state.remainingSeconds <= 60
-                            ? AppColors.error
-                            : AppColors.primary,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        state.timerText,
-                        style: AppTextStyles.labelMedium.copyWith(
-                          color: state.remainingSeconds <= 60
-                              ? AppColors.error
-                              : AppColors.primary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                ],
               ),
             ),
           ],
         ),
         body: Column(
           children: [
+            // F2: "Question X of Y" as separate text below AppBar
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                vertical: AppDimensions.xs,
+              ),
+              child: Text(
+                'Question ${state.currentIndex + 1} of ${state.totalQuestions}',
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: AppColors.gray,
+                ),
+              ),
+            ),
             // ---- Progress bar ----
             LinearProgressIndicator(
               value: state.progress,
@@ -240,23 +245,25 @@ class _ExamSessionBody extends StatelessWidget {
               ),
             ),
             // ---- Navigation buttons ----
+            // F5: Back button always visible (even on first question)
+            // F3: "Previous"→"Back", "Submit"→"Finish"
             Padding(
               padding: const EdgeInsets.all(AppDimensions.lg),
               child: Row(
                 children: [
-                  if (!state.isFirstQuestion)
-                    Expanded(
-                      child: AppButton(
-                        label: 'Previous',
-                        isOutlined: true,
-                        onPressed: cubit.goToPrevious,
-                      ),
-                    ),
-                  if (!state.isFirstQuestion)
-                    const SizedBox(width: AppDimensions.md),
                   Expanded(
                     child: AppButton(
-                      label: state.isLastQuestion ? 'Submit' : 'Next',
+                      label: 'Back',
+                      isOutlined: true,
+                      onPressed: state.isFirstQuestion
+                          ? () => _showLeaveDialog(context, cubit)
+                          : cubit.goToPrevious,
+                    ),
+                  ),
+                  const SizedBox(width: AppDimensions.md),
+                  Expanded(
+                    child: AppButton(
+                      label: state.isLastQuestion ? 'Finish' : 'Next',
                       onPressed: cubit.goToNext,
                     ),
                   ),

@@ -33,14 +33,19 @@ class QuestionModel {
         MapEntry('A4', a4),
       ];
 
+  /// Parses both the API format (answers nested inside `"answers"` object)
+  /// and the flat mock format (A1–A4 at root level).
   factory QuestionModel.fromJson(Map<String, dynamic> json) {
+    // API returns { answers: { A1, A2, A3, A4 } }
+    final answers = json['answers'] as Map<String, dynamic>?;
+
     return QuestionModel(
       id: json['_id'] as String? ?? '',
       question: json['question'] as String? ?? '',
-      a1: json['A1'] as String? ?? '',
-      a2: json['A2'] as String? ?? '',
-      a3: json['A3'] as String? ?? '',
-      a4: json['A4'] as String? ?? '',
+      a1: (answers?['A1'] ?? json['A1']) as String? ?? '',
+      a2: (answers?['A2'] ?? json['A2']) as String? ?? '',
+      a3: (answers?['A3'] ?? json['A3']) as String? ?? '',
+      a4: (answers?['A4'] ?? json['A4']) as String? ?? '',
       correct: json['correct'] as String? ?? '',
       subject: json['subject'] as String? ?? '',
       exam: json['exam'] as String? ?? '',
