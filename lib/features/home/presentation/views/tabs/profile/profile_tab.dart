@@ -1,26 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../../../common/utils/app_snackbar.dart';
 import '../../../../../../common/utils/validators.dart';
 import '../../../../../../common/widgets/app_button.dart';
 import '../../../../../../core/di/di.dart';
+import '../../../../../../core/routing/app_routes.dart';
 import '../../../../../../core/theme/app_colors.dart';
 import '../../../../../../core/theme/app_dimensions.dart';
 import '../../../../../../core/theme/app_text_styles.dart';
 import '../../../../../../features/auth/data/models/user_model.dart';
+import '../../../../../../features/auth/presentation/cubits/logout/logout_cubit.dart';
+import '../../../../../../features/auth/presentation/cubits/logout/logout_state.dart';
 import '../../../../../../features/auth/presentation/cubits/profile/profile_cubit.dart';
 import '../../../../../../features/auth/presentation/cubits/profile/profile_state.dart';
 
 /// Profile tab — loads user data from GET /auth/profileData,
-/// supports editing via PUT /auth/editProfile and password
-/// change via PATCH /auth/changePassword.
+/// supports editing via PUT /auth/editProfile, password
+/// change via PATCH /auth/changePassword, and logout.
 class ProfileTab extends StatelessWidget {
   const ProfileTab({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => getIt<ProfileCubit>()..loadProfile(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (_) => getIt<ProfileCubit>()..loadProfile(),
+        ),
+        BlocProvider(
+          create: (_) => getIt<LogoutCubit>(),
+        ),
+      ],
       child: const _ProfileContent(),
     );
   }
@@ -31,41 +42,34 @@ class _ProfileContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<ProfileCubit, ProfileState>(
-      listener: (context, state) {
-        switch (state) {
-          case ProfileUpdateSuccess(:final message):
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(message),
-                backgroundColor: Colors.green,
-              ),
-            );
-          case ProfileUpdateError(:final message):
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(message),
-                backgroundColor: Colors.red,
-              ),
-            );
-          case PasswordChangeSuccess():
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Password changed successfully'),
-                backgroundColor: Colors.green,
-              ),
-            );
-          case PasswordChangeError(:final message):
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(message),
-                backgroundColor: Colors.red,
-              ),
-            );
-          default:
-            break;
-        }
-      },
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<ProfileCubit, ProfileState>(
+          listenWhen: (prev, curr) =>
+              curr is ProfileUpdateSuccess ||
+              curr is ProfileUpdateError,
+          listener: (context, state) {
+            switch (state) {
+              case ProfileUpdateSuccess(:final message):
+                AppSnackBar.showSuccess(context, message);
+              case ProfileUpdateError(:final message):
+                AppSnackBar.showError(context, message);
+              default:
+                break;
+            }
+          },
+        ),
+        BlocListener<LogoutCubit, LogoutState>(
+          listener: (context, state) {
+            if (state is LogoutSuccess) {
+              Navigator.of(context).pushNamedAndRemoveUntil(
+                AppRoutes.login,
+                (_) => false,
+              );
+            }
+          },
+        ),
+      ],
       child: BlocBuilder<ProfileCubit, ProfileState>(
         builder: (context, state) {
           return switch (state) {
@@ -149,7 +153,8 @@ class _ProfileFormState extends State<_ProfileForm> {
   @override
   void didUpdateWidget(covariant _ProfileForm oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Sync controllers when user data changes (e.g. after successful update).
+    // Sync controllers when user data actually changes (e.g. after successful update).
+    // UserModel now implements == so this only fires on real data changes.
     if (oldWidget.user != widget.user) {
       _usernameCtrl.text = widget.user.username;
       _firstNameCtrl.text = widget.user.firstName;
@@ -174,115 +179,111 @@ class _ProfileFormState extends State<_ProfileForm> {
     final isUpdating = context.select<ProfileCubit, bool>(
       (cubit) => cubit.state is ProfileUpdating,
     );
+    final isLoggingOut = context.select<LogoutCubit, bool>(
+      (cubit) => cubit.state is LogoutLoading,
+    );
 
     return SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: AppDimensions.lg),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: AppDimensions.lg),
-              Text(
-                'Profile',
-                style: AppTextStyles.headlineSmall.copyWith(
-                  fontWeight: FontWeight.w700,
+      child: RefreshIndicator(
+        onRefresh: () => context.read<ProfileCubit>().loadProfile(),
+        color: AppColors.primary,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: AppDimensions.lg),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: AppDimensions.lg),
+                Text(
+                  'Profile',
+                  style: AppTextStyles.headlineSmall.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
-              ),
-              const SizedBox(height: AppDimensions.lg),
+                const SizedBox(height: AppDimensions.lg),
 
-              // ── Avatar ──
-              Center(
-                child: Stack(
+                // ── Avatar ──
+                Center(
+                  child: CircleAvatar(
+                    radius: 50,
+                    backgroundColor: AppColors.lightBlue,
+                    child: Icon(
+                      Icons.person,
+                      size: 50,
+                      color: AppColors.gray,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: AppDimensions.lg),
+
+                // ── Form fields ──
+                _buildTextField(
+                  controller: _usernameCtrl,
+                  label: 'User name',
+                  validator: (v) => Validators.username(v),
+                ),
+                const SizedBox(height: AppDimensions.md),
+                Row(
                   children: [
-                    CircleAvatar(
-                      radius: 50,
-                      backgroundColor: AppColors.lightBlue,
-                      child: Icon(
-                        Icons.person,
-                        size: 50,
-                        color: AppColors.gray,
+                    Expanded(
+                      child: _buildTextField(
+                        controller: _firstNameCtrl,
+                        label: 'First name',
+                        validator: (v) => Validators.name(v, 'First name'),
                       ),
                     ),
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 2),
-                        ),
-                        child: const Icon(
-                          Icons.camera_alt,
-                          size: 16,
-                          color: Colors.white,
-                        ),
+                    const SizedBox(width: AppDimensions.md),
+                    Expanded(
+                      child: _buildTextField(
+                        controller: _lastNameCtrl,
+                        label: 'Last name',
+                        validator: (v) => Validators.name(v, 'Last name'),
                       ),
                     ),
                   ],
                 ),
-              ),
+                const SizedBox(height: AppDimensions.md),
+                _buildTextField(
+                  controller: _emailCtrl,
+                  label: 'Email',
+                  keyboardType: TextInputType.emailAddress,
+                  validator: (v) => Validators.email(v),
+                ),
+                const SizedBox(height: AppDimensions.md),
+                _buildPasswordField(context),
+                const SizedBox(height: AppDimensions.md),
+                _buildTextField(
+                  controller: _phoneCtrl,
+                  label: 'Phone number',
+                  keyboardType: TextInputType.phone,
+                  validator: (v) => Validators.phone(v),
+                ),
 
-              const SizedBox(height: AppDimensions.lg),
+                const SizedBox(height: AppDimensions.xl),
 
-              // ── Form fields ──
-              _buildTextField(
-                controller: _usernameCtrl,
-                label: 'User name',
-                validator: (v) => Validators.username(v),
-              ),
-              const SizedBox(height: AppDimensions.md),
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildTextField(
-                      controller: _firstNameCtrl,
-                      label: 'First name',
-                      validator: (v) => Validators.name(v, 'First name'),
-                    ),
-                  ),
-                  const SizedBox(width: AppDimensions.md),
-                  Expanded(
-                    child: _buildTextField(
-                      controller: _lastNameCtrl,
-                      label: 'Last name',
-                      validator: (v) => Validators.name(v, 'Last name'),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppDimensions.md),
-              _buildTextField(
-                controller: _emailCtrl,
-                label: 'Email',
-                keyboardType: TextInputType.emailAddress,
-                validator: (v) => Validators.email(v),
-              ),
-              const SizedBox(height: AppDimensions.md),
-              _buildPasswordField(context),
-              const SizedBox(height: AppDimensions.md),
-              _buildTextField(
-                controller: _phoneCtrl,
-                label: 'Phone number',
-                keyboardType: TextInputType.phone,
-                validator: (v) => Validators.phone(v),
-              ),
+                // ── Update button ──
+                AppButton(
+                  label: 'Update',
+                  isLoading: isUpdating,
+                  onPressed: isUpdating ? null : _onUpdate,
+                ),
 
-              const SizedBox(height: AppDimensions.xl),
+                const SizedBox(height: AppDimensions.md),
 
-              // ── Update button ──
-              AppButton(
-                label: 'Update',
-                isLoading: isUpdating,
-                onPressed: isUpdating ? null : _onUpdate,
-              ),
+                // ── Logout button ──
+                AppButton(
+                  label: 'Logout',
+                  isOutlined: true,
+                  isLoading: isLoggingOut,
+                  onPressed: isLoggingOut ? null : () => _onLogout(context),
+                ),
 
-              const SizedBox(height: AppDimensions.xl),
-            ],
+                const SizedBox(height: AppDimensions.xl),
+              ],
+            ),
           ),
         ),
       ),
@@ -311,6 +312,18 @@ class _ProfileFormState extends State<_ProfileForm> {
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppDimensions.sm),
           borderSide: BorderSide(color: AppColors.gray),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppDimensions.sm),
+          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppDimensions.sm),
+          borderSide: const BorderSide(color: AppColors.error),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppDimensions.sm),
+          borderSide: const BorderSide(color: AppColors.error, width: 1.5),
         ),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: AppDimensions.md,
@@ -343,12 +356,19 @@ class _ProfileFormState extends State<_ProfileForm> {
           Expanded(
             child: Text('••••••', style: AppTextStyles.bodyLarge),
           ),
-          GestureDetector(
+          InkWell(
             onTap: () => _showChangePasswordSheet(context),
-            child: Text(
-              'Change',
-              style: AppTextStyles.labelMedium.copyWith(
-                color: AppColors.primary,
+            borderRadius: BorderRadius.circular(AppDimensions.xs),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppDimensions.xs,
+                vertical: 2,
+              ),
+              child: Text(
+                'Change',
+                style: AppTextStyles.labelMedium.copyWith(
+                  color: AppColors.primary,
+                ),
               ),
             ),
           ),
@@ -367,6 +387,32 @@ class _ProfileFormState extends State<_ProfileForm> {
           email: _emailCtrl.text.trim(),
           phone: _phoneCtrl.text.trim(),
         );
+  }
+
+  void _onLogout(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Logout'),
+        content: const Text('Are you sure you want to logout?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              context.read<LogoutCubit>().logout();
+            },
+            child: Text(
+              'Logout',
+              style: TextStyle(color: AppColors.error),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showChangePasswordSheet(BuildContext context) {
@@ -419,14 +465,29 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
       (cubit) => cubit.state is PasswordChanging,
     );
 
-    return BlocListener<ProfileCubit, ProfileState>(
-      listenWhen: (_, current) => current is PasswordChangeSuccess,
-      listener: (context, _) => Navigator.of(context).pop(),
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<ProfileCubit, ProfileState>(
+          listenWhen: (_, current) => current is PasswordChangeSuccess,
+          listener: (context, _) {
+            AppSnackBar.showSuccess(context, 'Password changed successfully');
+            Navigator.of(context).pop();
+          },
+        ),
+        BlocListener<ProfileCubit, ProfileState>(
+          listenWhen: (_, current) => current is PasswordChangeError,
+          listener: (context, state) {
+            if (state is PasswordChangeError) {
+              AppSnackBar.showError(context, state.message);
+            }
+          },
+        ),
+      ],
       child: Padding(
         padding: EdgeInsets.only(
           left: AppDimensions.lg,
           right: AppDimensions.lg,
-          top: AppDimensions.lg,
+          top: AppDimensions.sm,
           bottom: MediaQuery.of(context).viewInsets.bottom + AppDimensions.lg,
         ),
         child: Form(
@@ -435,6 +496,18 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Drag handle
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: AppDimensions.md),
+                  decoration: BoxDecoration(
+                    color: AppColors.gray.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
               Text(
                 'Change Password',
                 style: AppTextStyles.titleMedium.copyWith(
@@ -475,6 +548,7 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
                 isLoading: isChanging,
                 onPressed: isChanging ? null : _onSubmit,
               ),
+              const SizedBox(height: AppDimensions.md),
             ],
           ),
         ),
@@ -505,6 +579,18 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppDimensions.sm),
           borderSide: BorderSide(color: AppColors.gray),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppDimensions.sm),
+          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppDimensions.sm),
+          borderSide: const BorderSide(color: AppColors.error),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppDimensions.sm),
+          borderSide: const BorderSide(color: AppColors.error, width: 1.5),
         ),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: AppDimensions.md,

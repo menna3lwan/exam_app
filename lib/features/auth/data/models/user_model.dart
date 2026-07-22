@@ -65,4 +65,30 @@ class UserModel {
       if (createdAt != null) 'createdAt': createdAt!.toIso8601String(),
     };
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is UserModel &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          username == other.username &&
+          firstName == other.firstName &&
+          lastName == other.lastName &&
+          email == other.email &&
+          phone == other.phone &&
+          role == other.role &&
+          isVerified == other.isVerified;
+
+  @override
+  int get hashCode => Object.hash(
+        id,
+        username,
+        firstName,
+        lastName,
+        email,
+        phone,
+        role,
+        isVerified,
+      );
 }

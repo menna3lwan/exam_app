@@ -70,11 +70,15 @@ class ProfileCubit extends Cubit<ProfileState> {
       case Success(:final data):
         final updatedUser = data ?? currentUser;
         emit(ProfileUpdateSuccess(updatedUser, 'Profile updated successfully'));
+        // Settle back to Loaded so the state machine is ready for the next operation.
+        if (!isClosed) emit(ProfileLoaded(updatedUser));
       case Failure(:final message):
         emit(ProfileUpdateError(
           currentUser,
           message ?? 'Could not update profile',
         ));
+        // Settle back to Loaded so the user can retry.
+        if (!isClosed) emit(ProfileLoaded(currentUser));
     }
   }
 
@@ -98,11 +102,15 @@ class ProfileCubit extends Cubit<ProfileState> {
     switch (result) {
       case Success():
         emit(PasswordChangeSuccess(currentUser));
+        // Settle back to Loaded so the state machine is ready for the next operation.
+        if (!isClosed) emit(ProfileLoaded(currentUser));
       case Failure(:final message):
         emit(PasswordChangeError(
           currentUser,
           message ?? 'Could not change password',
         ));
+        // Settle back to Loaded so the user can retry.
+        if (!isClosed) emit(ProfileLoaded(currentUser));
     }
   }
 
