@@ -1,4 +1,5 @@
 import '../../../../core/network/api_results.dart';
+import '../../data/models/auth_response_model.dart';
 import '../repos/auth_repository.dart';
 
 class SignUpUseCase {
@@ -6,7 +7,7 @@ class SignUpUseCase {
 
   SignUpUseCase(this._repository);
 
-  Future<ApiResults<void>> call({
+  Future<ApiResults<AuthResponseModel>> call({
     required String username,
     required String firstName,
     required String lastName,

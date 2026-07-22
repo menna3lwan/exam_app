@@ -32,7 +32,8 @@ class _VerificationCodeBody extends StatefulWidget {
 }
 
 class _VerificationCodeBodyState extends State<_VerificationCodeBody> {
-  static const int _codeLength = 4;
+  /// Postman API: resetCode is a 6-digit string.
+  static const int _codeLength = 6;
   late final List<TextEditingController> _controllers;
   late final List<FocusNode> _focusNodes;
   String? _email;
@@ -71,9 +72,8 @@ class _VerificationCodeBodyState extends State<_VerificationCodeBody> {
   bool get _isCodeComplete => _code.length == _codeLength;
 
   void _onVerify() {
-    final email = _email;
-    if (!_isCodeComplete || email == null) return;
-    context.read<VerifyCodeCubit>().verify(email: email, code: _code);
+    if (!_isCodeComplete) return;
+    context.read<VerifyCodeCubit>().verify(code: _code);
   }
 
   void _onResendCode() {
@@ -242,7 +242,8 @@ class _OtpBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.sizeOf(context).width;
-    final boxSize = (screenWidth - 48 - 48) / 4;
+    // 6 boxes: total padding 48 (sides) + 5*8 (gaps between boxes) = 88
+    final boxSize = (screenWidth - 48 - 40) / 6;
 
     return SizedBox(
       width: boxSize,

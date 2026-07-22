@@ -22,7 +22,7 @@ class PasswordRequirements extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _RequirementRow(
-          label: 'At least 6 characters',
+          label: 'At least 8 characters',
           passed: PasswordRules.hasMinLength(password),
           active: hasStarted,
         ),
@@ -42,6 +42,12 @@ class PasswordRequirements extends StatelessWidget {
         _RequirementRow(
           label: 'One number (0-9)',
           passed: PasswordRules.hasDigit(password),
+          active: hasStarted,
+        ),
+        const SizedBox(height: AppDimensions.xs),
+        _RequirementRow(
+          label: 'One special character (#?!@\$%^&*-)',
+          passed: PasswordRules.hasSpecialChar(password),
           active: hasStarted,
         ),
       ],

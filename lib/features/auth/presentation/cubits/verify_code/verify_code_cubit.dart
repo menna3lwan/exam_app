@@ -12,13 +12,10 @@ class VerifyCodeCubit extends Cubit<VerifyCodeState> {
   VerifyCodeCubit(this._verifyCodeUseCase, this._forgetPasswordUseCase)
       : super(const VerifyCodeInitial());
 
-  Future<void> verify({
-    required String email,
-    required String code,
-  }) async {
+  Future<void> verify({required String code}) async {
     emit(const VerifyCodeLoading());
 
-    final result = await _verifyCodeUseCase(email: email, code: code);
+    final result = await _verifyCodeUseCase(code: code);
 
     if (isClosed) return;
 

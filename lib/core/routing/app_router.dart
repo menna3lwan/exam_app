@@ -4,6 +4,7 @@ import '../../features/auth/presentation/views/forget_password_view.dart';
 import '../../features/auth/presentation/views/login_view.dart';
 import '../../features/auth/presentation/views/reset_password_view.dart';
 import '../../features/auth/presentation/views/sign_up_view.dart';
+import '../../features/auth/presentation/views/splash_view.dart';
 import '../../features/auth/presentation/views/verification_code_view.dart';
 import '../../features/exam/presentation/views/answers_review_view.dart';
 import '../../features/exam/presentation/views/exam_result_view.dart';
@@ -20,6 +21,7 @@ class AppRouter {
     switch (settings.name) {
       // --- Auth ---
       case AppRoutes.splash:
+        return _page(settings, const SplashView());
       case AppRoutes.login:
         return _page(settings, const LoginView());
       case AppRoutes.signUp:

@@ -1,21 +1,29 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../network/api_constants.dart';
+import '../network/auth_interceptor.dart';
+import '../services/session_event_bus.dart';
+import '../services/token_service.dart';
 
 // ── Auth feature ──
-import '../../features/auth/data/data_sources/auth_mock_data_source.dart';
+import '../../features/auth/data/data_sources/auth_data_source.dart';
+import '../../features/auth/data/data_sources/auth_remote_data_source.dart';
 import '../../features/auth/data/repos/auth_repository_impl.dart';
 import '../../features/auth/domain/repos/auth_repository.dart';
 import '../../features/auth/domain/use_cases/forget_password_use_case.dart';
 import '../../features/auth/domain/use_cases/login_use_case.dart';
+import '../../features/auth/domain/use_cases/logout_use_case.dart';
 import '../../features/auth/domain/use_cases/reset_password_use_case.dart';
 import '../../features/auth/domain/use_cases/sign_up_use_case.dart';
 import '../../features/auth/domain/use_cases/verify_code_use_case.dart';
 import '../../features/auth/presentation/cubits/forget_password/forget_password_cubit.dart';
 import '../../features/auth/presentation/cubits/login/login_cubit.dart';
+import '../../features/auth/presentation/cubits/logout/logout_cubit.dart';
 import '../../features/auth/presentation/cubits/reset_password/reset_password_cubit.dart';
 import '../../features/auth/presentation/cubits/sign_up/sign_up_cubit.dart';
 import '../../features/auth/presentation/cubits/verify_code/verify_code_cubit.dart';
@@ -44,23 +52,49 @@ final getIt = GetIt.instance;
 
 /// Manual DI registration — no build_runner needed.
 ///
+/// [prefs] must be pre-initialized in main() before calling this,
+/// because SharedPreferences.getInstance() is async and DI registration
+/// must be synchronous.
+///
 /// Registration order:
-///   1. Infrastructure (Dio, AssetBundle)
-///   2. Data sources
+///   1. Infrastructure (secure storage, SharedPreferences, TokenService,
+///      SessionEventBus, Dio + AuthInterceptor, AssetBundle)
+///   2. Data sources (registered against abstract contracts)
 ///   3. Repositories (registered against abstract contracts)
 ///   4. Use cases
 ///   5. Cubits (factory — new instance per BlocProvider)
-void configureDependencies() {
+void configureDependencies(SharedPreferences prefs) {
   // ───────────────────────── Infrastructure ─────────────────────────
 
-  getIt.registerSingleton<Dio>(_createDio());
+  getIt.registerSingleton<FlutterSecureStorage>(
+    const FlutterSecureStorage(),
+  );
+  getIt.registerSingleton<SharedPreferences>(prefs);
+  getIt.registerSingleton<TokenService>(
+    TokenService(
+      secureStorage: getIt<FlutterSecureStorage>(),
+      prefs: getIt<SharedPreferences>(),
+    ),
+  );
+  getIt.registerSingleton<SessionEventBus>(SessionEventBus());
+  getIt.registerSingleton<Dio>(
+    _createDio(
+      tokenService: getIt<TokenService>(),
+      sessionEventBus: getIt<SessionEventBus>(),
+    ),
+  );
   getIt.registerSingleton<AssetBundle>(rootBundle);
 
   // ───────────────────────── Auth ─────────────────────────
 
-  getIt.registerSingleton<AuthMockDataSource>(AuthMockDataSource());
+  getIt.registerSingleton<AuthDataSource>(
+    AuthRemoteDataSource(getIt<Dio>()),
+  );
   getIt.registerSingleton<AuthRepository>(
-    AuthRepositoryImpl(getIt<AuthMockDataSource>()),
+    AuthRepositoryImpl(
+      getIt<AuthDataSource>(),
+      getIt<TokenService>(),
+    ),
   );
 
   getIt.registerFactory(() => LoginUseCase(getIt<AuthRepository>()));
@@ -68,6 +102,7 @@ void configureDependencies() {
   getIt.registerFactory(() => ForgetPasswordUseCase(getIt<AuthRepository>()));
   getIt.registerFactory(() => VerifyCodeUseCase(getIt<AuthRepository>()));
   getIt.registerFactory(() => ResetPasswordUseCase(getIt<AuthRepository>()));
+  getIt.registerFactory(() => LogoutUseCase(getIt<AuthRepository>()));
 
   getIt.registerFactory(() => LoginCubit(getIt<LoginUseCase>()));
   getIt.registerFactory(() => SignUpCubit(getIt<SignUpUseCase>()));
@@ -83,6 +118,7 @@ void configureDependencies() {
   getIt.registerFactory(
     () => ResetPasswordCubit(getIt<ResetPasswordUseCase>()),
   );
+  getIt.registerFactory(() => LogoutCubit(getIt<LogoutUseCase>()));
 
   // ───────────────────────── Home ─────────────────────────
 
@@ -122,7 +158,10 @@ void configureDependencies() {
   );
 }
 
-Dio _createDio() {
+Dio _createDio({
+  required TokenService tokenService,
+  required SessionEventBus sessionEventBus,
+}) {
   final dio = Dio();
   dio.options = BaseOptions(
     baseUrl: baseUrl,
@@ -130,6 +169,15 @@ Dio _createDio() {
     connectTimeout: const Duration(seconds: 60),
     sendTimeout: const Duration(seconds: 60),
   );
+
+  // Auth interceptor — attaches token header + handles 401/403.
+  dio.interceptors.add(
+    AuthInterceptor(
+      tokenService: tokenService,
+      onSessionExpired: () => sessionEventBus.fire(SessionEvent.expired),
+    ),
+  );
+
   dio.interceptors.add(
     PrettyDioLogger(
       requestHeader: true,

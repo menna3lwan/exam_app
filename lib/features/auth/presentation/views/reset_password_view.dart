@@ -133,7 +133,7 @@ class _ResetPasswordBodyState extends State<_ResetPasswordBody> {
                     ),
                     const SizedBox(height: AppDimensions.sm),
                     Text(
-                      'Password must not be empty and must contain\n6 characters with upper case letter and one\nnumber at least',
+                      'Password must be at least 8 characters with\nupper case, lower case, number, and special\ncharacter',
                       style: AppTextStyles.bodyMedium.copyWith(
                         color: AppColors.gray,
                       ),

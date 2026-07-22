@@ -1,34 +1,44 @@
+import '../models/auth_response_model.dart';
+import '../models/user_model.dart';
+import 'auth_data_source.dart';
+
 /// Mock data source for auth operations.
 ///
-/// Simulates network delay and always returns success.
-/// Will be replaced by a remote data source (Retrofit) in API phase.
-///
-/// ## Postman API contracts
-///
-/// **POST /auth/signin** — `{ email, password }`
-///
-/// **POST /auth/signup** — `{ username, firstName, lastName, email,
-///   password, rePassword, phone }`.
-///   Note: the API uses `rePassword` for confirm-password.
-///
-/// **POST /auth/forgotPassword** — `{ email }`
-///
-/// **POST /auth/verifyResetCode** — `{ resetCode }` (6-digit string)
-///
-/// **PUT /auth/resetPassword** — `{ email, newPassword }`
-class AuthMockDataSource {
+/// Simulates network delay and always returns success with fake data.
+/// Implements [AuthDataSource] so the repository can swap between
+/// mock and remote via DI.
+class AuthMockDataSource implements AuthDataSource {
   static const _mockDelay = Duration(milliseconds: 600);
 
-  Future<void> login({
+  static const _mockToken = 'mock_jwt_token_for_testing';
+
+  static final _mockUser = UserModel(
+    id: 'mock_user_id',
+    username: 'mockuser',
+    firstName: 'Mock',
+    lastName: 'User',
+    email: 'mock@test.com',
+    phone: '01012345678',
+    role: 'user',
+    isVerified: false,
+    createdAt: DateTime.now(),
+  );
+
+  @override
+  Future<AuthResponseModel> login({
     required String email,
     required String password,
   }) async {
     await Future.delayed(_mockDelay);
-    // Mock: always succeeds
+    return AuthResponseModel(
+      message: 'success',
+      token: _mockToken,
+      user: _mockUser,
+    );
   }
 
-  /// [confirmPassword] maps to `rePassword` in the API request body.
-  Future<void> signUp({
+  @override
+  Future<AuthResponseModel> signUp({
     required String username,
     required String firstName,
     required String lastName,
@@ -38,23 +48,33 @@ class AuthMockDataSource {
     required String phone,
   }) async {
     await Future.delayed(_mockDelay);
+    return AuthResponseModel(
+      message: 'success',
+      token: _mockToken,
+      user: _mockUser,
+    );
   }
 
+  @override
   Future<void> forgetPassword({required String email}) async {
     await Future.delayed(_mockDelay);
   }
 
-  Future<void> verifyCode({
-    required String email,
-    required String code,
-  }) async {
+  @override
+  Future<void> verifyCode({required String code}) async {
     await Future.delayed(_mockDelay);
   }
 
+  @override
   Future<void> resetPassword({
     required String email,
     required String newPassword,
   }) async {
+    await Future.delayed(_mockDelay);
+  }
+
+  @override
+  Future<void> logout() async {
     await Future.delayed(_mockDelay);
   }
 }

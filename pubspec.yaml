@@ -33,6 +33,12 @@ dependencies:
   google_fonts: ^6.2.1
   # SVG icon rendering for Figma-exported icon assets.
   flutter_svg: ^2.0.17
+  # --- New for API Integration (Auth Phase) ---
+  # Secure token persistence (AES-encrypted on both platforms).
+  flutter_secure_storage: ^9.2.4
+  # Remember Me flag + lightweight user preferences.
+  shared_preferences: ^2.3.4
+
   # Required by flutter_localizations / ARB-based localization foundation.
   # Left unpinned deliberately: flutter_localizations (SDK) pins an exact
   # intl version per Flutter release, and adding our own caret constraint

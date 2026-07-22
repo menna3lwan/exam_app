@@ -6,10 +6,7 @@ class VerifyCodeUseCase {
 
   VerifyCodeUseCase(this._repository);
 
-  Future<ApiResults<void>> call({
-    required String email,
-    required String code,
-  }) {
-    return _repository.verifyCode(email: email, code: code);
+  Future<ApiResults<void>> call({required String code}) {
+    return _repository.verifyCode(code: code);
   }
 }

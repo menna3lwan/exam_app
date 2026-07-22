@@ -74,6 +74,7 @@ class _LoginBodyState extends State<_LoginBody> {
     context.read<LoginCubit>().login(
           email: _emailController.text.trim(),
           password: _passwordController.text,
+          rememberMe: _rememberMe,
         );
   }
 
