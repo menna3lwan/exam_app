@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-
 import '../../../../common/utils/app_snackbar.dart';
 import '../../../../common/widgets/answer_option_card.dart';
 import '../../../../common/widgets/app_button.dart';
@@ -203,7 +202,7 @@ class _ExamSessionBody extends StatelessWidget {
                 vertical: AppDimensions.xs,
               ),
               child: Text(
-                'Question ${state.currentIndex + 1} of ${state.totalQuestions}',
+                'Question ${state.currentIndex + 1} of ${state.questions.length}',
                 style: AppTextStyles.bodyMedium.copyWith(
                   color: AppColors.gray,
                 ),
