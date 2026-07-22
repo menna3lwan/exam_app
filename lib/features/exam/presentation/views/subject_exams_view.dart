@@ -56,10 +56,10 @@ class _SubjectExamsBody extends StatelessWidget {
               const Center(child: CircularProgressIndicator()),
             SubjectExamsError(:final message) =>
               Center(child: Text(message)),
-            SubjectExamsLoaded(:final groupedExams, :final subject) =>
-              groupedExams.isEmpty
+            SubjectExamsLoaded(:final exams, :final subject) =>
+              exams.isEmpty
                   ? _buildEmptyState()
-                  : _buildExamList(context, groupedExams, subject),
+                  : _buildExamList(context, exams, subject),
           };
         },
       ),
@@ -84,47 +84,29 @@ class _SubjectExamsBody extends StatelessWidget {
 
   Widget _buildExamList(
     BuildContext context,
-    Map<String, List<ExamModel>> grouped,
+    List<ExamModel> exams,
     SubjectModel subject,
   ) {
-    return ListView.builder(
+    return ListView.separated(
       padding: const EdgeInsets.symmetric(
         horizontal: AppDimensions.lg,
         vertical: AppDimensions.md,
       ),
-      itemCount: grouped.length,
-      itemBuilder: (context, sectionIndex) {
-        final title = grouped.keys.elementAt(sectionIndex);
-        final exams = grouped[title]!;
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (sectionIndex > 0) const SizedBox(height: AppDimensions.lg),
-            Text(
-              title,
-              style: AppTextStyles.titleMedium.copyWith(
-                color: AppColors.black,
-              ),
+      itemCount: exams.length,
+      separatorBuilder: (_, __) => const SizedBox(height: AppDimensions.sm),
+      itemBuilder: (context, index) {
+        final exam = exams[index];
+        return ExamCard(
+          exam: exam,
+          subjectIcon: subject.icon,
+          onTap: () => Navigator.pushNamed(
+            context,
+            AppRoutes.startExam,
+            arguments: StartExamArgs(
+              exam: exam,
+              subject: subject,
             ),
-            const SizedBox(height: AppDimensions.sm),
-            ...exams.map(
-              (exam) => Padding(
-                padding: const EdgeInsets.only(bottom: AppDimensions.sm),
-                child: ExamCard(
-                  exam: exam,
-                  subjectIcon: subject.icon,
-                  onTap: () => Navigator.pushNamed(
-                    context,
-                    AppRoutes.startExam,
-                    arguments: StartExamArgs(
-                      exam: exam,
-                      subject: subject,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
+          ),
         );
       },
     );

@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';
@@ -7,15 +8,14 @@ import '../../core/theme/app_shadows.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../data/models/exam_model.dart';
 
-/// Exam card matching the Figma "Explore > Languages" screen.
+/// Exam card — flat list layout (no grouping, no From/To).
 ///
 /// Layout:
-///   [icon]  "High level"                    "30 Minutes" (blue)
-///           "20 Question"
-///           "From: 1.00 To: 6.00"
+///   [icon]  exam.title                       "30 Minutes" (blue)
+///           "20 Questions"
 class ExamCard extends StatelessWidget {
   final ExamModel exam;
-  final String subjectIcon; // illustration asset path
+  final String subjectIcon; // URL from API
   final VoidCallback? onTap;
 
   const ExamCard({
@@ -42,11 +42,34 @@ class ExamCard extends StatelessWidget {
             // ---- Subject illustration ----
             ClipRRect(
               borderRadius: AppRadius.smRadius,
-              child: Image.asset(
-                subjectIcon,
+              child: CachedNetworkImage(
+                imageUrl: subjectIcon,
                 width: 48,
                 height: 48,
                 fit: BoxFit.contain,
+                placeholder: (_, __) => const SizedBox(
+                  width: 48,
+                  height: 48,
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ),
+                errorWidget: (_, __, ___) => Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: AppColors.lightBlue,
+                    borderRadius: AppRadius.smRadius,
+                  ),
+                  child: const Icon(
+                    Icons.quiz_outlined,
+                    color: AppColors.primary,
+                    size: 24,
+                  ),
+                ),
               ),
             ),
             const SizedBox(width: AppDimensions.md),
@@ -56,21 +79,14 @@ class ExamCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'High level',
+                    exam.title,
                     style: AppTextStyles.labelMedium.copyWith(
                       color: AppColors.black,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '${exam.numberOfQuestions} Question',
-                    style: AppTextStyles.bodySmall.copyWith(
-                      color: AppColors.gray,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'From: 1.00 To: 6.00',
+                    '${exam.numberOfQuestions} Questions',
                     style: AppTextStyles.bodySmall.copyWith(
                       color: AppColors.gray,
                     ),

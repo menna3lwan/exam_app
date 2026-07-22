@@ -38,6 +38,8 @@ dependencies:
   flutter_secure_storage: ^9.2.4
   # Remember Me flag + lightweight user preferences.
   shared_preferences: ^2.3.4
+  # Network image loading with disk/memory caching.
+  cached_network_image: ^3.4.1
 
   # Required by flutter_localizations / ARB-based localization foundation.
   # Left unpinned deliberately: flutter_localizations (SDK) pins an exact

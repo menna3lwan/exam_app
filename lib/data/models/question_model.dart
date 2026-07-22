@@ -1,7 +1,22 @@
 /// Question entity matching the Postman `GET /questions?exam={id}` shape.
 ///
-/// Fixed 4-option MCQ: A1–A4 are the choices, `correct` holds which key
-/// ("A1"–"A4") is the right answer.
+/// ```json
+/// {
+///   "_id": "69d980127c82914570305dd8",
+///   "question": "What keyword is used to declare a variable?",
+///   "answers": [
+///     { "answer": "var", "key": "A1" },
+///     { "answer": "let", "key": "A2" },
+///     { "answer": "const", "key": "A3" },
+///     { "answer": "All of the above", "key": "A4" }
+///   ],
+///   "type": "single_choice",
+///   "correct": "A4",
+///   "subject": { "_id": "...", "name": "JavaScript", ... },
+///   "exam": { "_id": "...", "title": "JS Basics", ... },
+///   "createdAt": "2026-04-10T22:56:18.167Z"
+/// }
+/// ```
 class QuestionModel {
   final String id;
   final String question;
@@ -10,8 +25,9 @@ class QuestionModel {
   final String a3;
   final String a4;
   final String correct; // "A1"–"A4"
-  final String subject;
-  final String exam;
+  final String type; // "single_choice"
+  final String subjectId;
+  final String examId;
 
   const QuestionModel({
     required this.id,
@@ -21,8 +37,9 @@ class QuestionModel {
     required this.a3,
     required this.a4,
     required this.correct,
-    required this.subject,
-    required this.exam,
+    this.type = 'single_choice',
+    required this.subjectId,
+    required this.examId,
   });
 
   /// Returns all 4 answer options as a list of (key, text) pairs.
@@ -33,34 +50,67 @@ class QuestionModel {
         MapEntry('A4', a4),
       ];
 
-  /// Parses both the API format (answers nested inside `"answers"` object)
-  /// and the flat mock format (A1–A4 at root level).
+  /// Parses the live API format where:
+  /// - `answers` is a `List<Map>` with `{ answer: "text", key: "A1" }`.
+  /// - `subject` and `exam` are nested objects — we extract `_id` only.
   factory QuestionModel.fromJson(Map<String, dynamic> json) {
-    // API returns { answers: { A1, A2, A3, A4 } }
-    final answers = json['answers'] as Map<String, dynamic>?;
+    // Parse answers list → keyed map { "A1": "text", "A2": "text", ... }
+    final answersMap = <String, String>{};
+    final rawAnswers = json['answers'];
+    if (rawAnswers is List) {
+      for (final entry in rawAnswers) {
+        if (entry is Map<String, dynamic>) {
+          final key = entry['key'] as String? ?? '';
+          final answer = entry['answer'] as String? ?? '';
+          if (key.isNotEmpty) answersMap[key] = answer;
+        }
+      }
+    }
+
+    // Extract subject ID — can be nested object or plain string
+    String subjectId = '';
+    final rawSubject = json['subject'];
+    if (rawSubject is Map<String, dynamic>) {
+      subjectId = rawSubject['_id'] as String? ?? '';
+    } else if (rawSubject is String) {
+      subjectId = rawSubject;
+    }
+
+    // Extract exam ID — can be nested object or plain string
+    String examId = '';
+    final rawExam = json['exam'];
+    if (rawExam is Map<String, dynamic>) {
+      examId = rawExam['_id'] as String? ?? '';
+    } else if (rawExam is String) {
+      examId = rawExam;
+    }
 
     return QuestionModel(
       id: json['_id'] as String? ?? '',
       question: json['question'] as String? ?? '',
-      a1: (answers?['A1'] ?? json['A1']) as String? ?? '',
-      a2: (answers?['A2'] ?? json['A2']) as String? ?? '',
-      a3: (answers?['A3'] ?? json['A3']) as String? ?? '',
-      a4: (answers?['A4'] ?? json['A4']) as String? ?? '',
+      a1: answersMap['A1'] ?? '',
+      a2: answersMap['A2'] ?? '',
+      a3: answersMap['A3'] ?? '',
+      a4: answersMap['A4'] ?? '',
       correct: json['correct'] as String? ?? '',
-      subject: json['subject'] as String? ?? '',
-      exam: json['exam'] as String? ?? '',
+      type: json['type'] as String? ?? 'single_choice',
+      subjectId: subjectId,
+      examId: examId,
     );
   }
 
   Map<String, dynamic> toJson() => {
         '_id': id,
         'question': question,
-        'A1': a1,
-        'A2': a2,
-        'A3': a3,
-        'A4': a4,
+        'answers': [
+          {'answer': a1, 'key': 'A1'},
+          {'answer': a2, 'key': 'A2'},
+          {'answer': a3, 'key': 'A3'},
+          {'answer': a4, 'key': 'A4'},
+        ],
+        'type': type,
         'correct': correct,
-        'subject': subject,
-        'exam': exam,
+        'subject': subjectId,
+        'exam': examId,
       };
 }

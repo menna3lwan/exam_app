@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';
@@ -42,11 +43,34 @@ class SubjectCard extends StatelessWidget {
             // ---- Subject illustration ----
             ClipRRect(
               borderRadius: AppRadius.smRadius,
-              child: Image.asset(
-                subject.icon,
+              child: CachedNetworkImage(
+                imageUrl: subject.icon,
                 width: 56,
                 height: 56,
                 fit: BoxFit.contain,
+                placeholder: (_, __) => const SizedBox(
+                  width: 56,
+                  height: 56,
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ),
+                errorWidget: (_, __, ___) => Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: AppColors.lightBlue,
+                    borderRadius: AppRadius.smRadius,
+                  ),
+                  child: const Icon(
+                    Icons.school_outlined,
+                    color: AppColors.primary,
+                    size: 28,
+                  ),
+                ),
               ),
             ),
             const SizedBox(width: AppDimensions.md),

@@ -40,6 +40,10 @@ class ExamApp extends StatefulWidget {
 class _ExamAppState extends State<ExamApp> {
   StreamSubscription<SessionEvent>? _sessionSub;
 
+  /// Prevents duplicate session-expired navigations. Multiple concurrent
+  /// API failures can fire the event bus several times; we only act once.
+  bool _isNavigatingToLogin = false;
+
   @override
   void initState() {
     super.initState();
@@ -47,12 +51,18 @@ class _ExamAppState extends State<ExamApp> {
   }
 
   void _onSessionEvent(SessionEvent event) {
-    if (event == SessionEvent.expired) {
+    if (event == SessionEvent.expired && !_isNavigatingToLogin) {
+      _isNavigatingToLogin = true;
       // Force-navigate to login, clearing the entire stack.
       navigatorKey.currentState?.pushNamedAndRemoveUntil(
         AppRoutes.login,
         (_) => false,
       );
+      // Reset the flag after navigation completes so future genuine
+      // session expiry (after re-login) can trigger again.
+      Future.delayed(const Duration(milliseconds: 500), () {
+        _isNavigatingToLogin = false;
+      });
     }
   }
 

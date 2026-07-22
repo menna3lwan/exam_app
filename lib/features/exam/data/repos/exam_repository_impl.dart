@@ -5,10 +5,10 @@ import '../../../../data/models/exam_model.dart';
 import '../../../../data/models/exam_result_model.dart';
 import '../../../../data/models/question_model.dart';
 import '../../domain/repos/exam_repository.dart';
-import '../data_sources/exam_mock_data_source.dart';
+import '../data_sources/exam_data_source.dart';
 
 class ExamRepositoryImpl implements ExamRepository {
-  final ExamMockDataSource _dataSource;
+  final ExamDataSource _dataSource;
 
   ExamRepositoryImpl(this._dataSource);
 

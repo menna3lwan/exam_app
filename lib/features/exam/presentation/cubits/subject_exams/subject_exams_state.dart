@@ -15,8 +15,8 @@ class SubjectExamsLoading extends SubjectExamsState {
 
 class SubjectExamsLoaded extends SubjectExamsState {
   final SubjectModel subject;
-  final Map<String, List<ExamModel>> groupedExams;
-  const SubjectExamsLoaded({required this.subject, required this.groupedExams});
+  final List<ExamModel> exams;
+  const SubjectExamsLoaded({required this.subject, required this.exams});
 }
 
 class SubjectExamsError extends SubjectExamsState {

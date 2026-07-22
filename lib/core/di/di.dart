@@ -29,7 +29,8 @@ import '../../features/auth/presentation/cubits/sign_up/sign_up_cubit.dart';
 import '../../features/auth/presentation/cubits/verify_code/verify_code_cubit.dart';
 
 // ── Home feature ──
-import '../../features/home/data/data_sources/home_mock_data_source.dart';
+import '../../features/home/data/data_sources/home_data_source.dart';
+import '../../features/home/data/data_sources/home_remote_data_source.dart';
 import '../../features/home/data/repos/home_repository_impl.dart';
 import '../../features/home/domain/repos/home_repository.dart';
 import '../../features/home/domain/use_cases/get_subjects_use_case.dart';
@@ -37,7 +38,8 @@ import '../../features/home/presentation/cubits/explore/explore_cubit.dart';
 import '../../features/home/presentation/cubits/results/results_cubit.dart';
 
 // ── Exam feature ──
-import '../../features/exam/data/data_sources/exam_mock_data_source.dart';
+import '../../features/exam/data/data_sources/exam_data_source.dart';
+import '../../features/exam/data/data_sources/exam_remote_data_source.dart';
 import '../../features/exam/data/repos/exam_repository_impl.dart';
 import '../../features/exam/domain/repos/exam_repository.dart';
 import '../../features/exam/domain/use_cases/get_exam_history_use_case.dart';
@@ -122,9 +124,11 @@ void configureDependencies(SharedPreferences prefs) {
 
   // ───────────────────────── Home ─────────────────────────
 
-  getIt.registerSingleton<HomeMockDataSource>(HomeMockDataSource());
+  getIt.registerSingleton<HomeDataSource>(
+    HomeRemoteDataSource(getIt<Dio>()),
+  );
   getIt.registerSingleton<HomeRepository>(
-    HomeRepositoryImpl(getIt<HomeMockDataSource>()),
+    HomeRepositoryImpl(getIt<HomeDataSource>()),
   );
 
   getIt.registerFactory(() => GetSubjectsUseCase(getIt<HomeRepository>()));
@@ -132,9 +136,11 @@ void configureDependencies(SharedPreferences prefs) {
 
   // ───────────────────────── Exam ─────────────────────────
 
-  getIt.registerSingleton<ExamMockDataSource>(ExamMockDataSource());
+  getIt.registerSingleton<ExamDataSource>(
+    ExamRemoteDataSource(getIt<Dio>()),
+  );
   getIt.registerSingleton<ExamRepository>(
-    ExamRepositoryImpl(getIt<ExamMockDataSource>()),
+    ExamRepositoryImpl(getIt<ExamDataSource>()),
   );
 
   getIt.registerFactory(() => GetExamsUseCase(getIt<ExamRepository>()));

@@ -2,44 +2,27 @@ import '../../../../data/models/exam_history_model.dart';
 import '../../../../data/models/exam_model.dart';
 import '../../../../data/models/exam_result_model.dart';
 import '../../../../data/models/question_model.dart';
+import 'exam_data_source.dart';
 
 /// Mock data source for exam operations.
 ///
-/// Contains all exam/question mock data previously in MockData class.
-///
-/// ## Postman API contracts
-///
-/// **GET /exam?subject={subjectId}** — returns `{ exams: [...] }`
-///
-/// **GET /questions?exam={examId}** — returns `{ questions: [...] }`
-///   Each question has `{ _id, question, answers: {A1,A2,A3,A4}, correct, subject, exam }`
-///
-/// **POST /questions/check** — request body:
-///   `{ answers: [ { questionId: "...", correct: "A2" }, ... ] }`
-///   The `correct` field is the user's selected answer key.
-///   Note: the internal `Map<String, String>` (questionId → answer)
-///   must be transformed to this list-of-objects format in the remote
-///   data source.
-///
-/// **GET /exam/history** — returns `{ exams: [...] }`
-class ExamMockDataSource {
+/// Retained for testing; production uses [ExamRemoteDataSource].
+class ExamMockDataSource implements ExamDataSource {
   static const _mockDelay = Duration(milliseconds: 400);
 
+  @override
   Future<List<ExamModel>> getExamsForSubject(String subjectId) async {
     await Future.delayed(_mockDelay);
     return _exams.where((e) => e.subject == subjectId).toList();
   }
 
+  @override
   Future<List<QuestionModel>> getQuestionsForExam(String examId) async {
     await Future.delayed(_mockDelay);
-    return _questions.where((q) => q.exam == examId).toList();
+    return _questions.where((q) => q.examId == examId).toList();
   }
 
-  /// Submit answers for grading.
-  ///
-  /// [answers] maps `questionId → selected answer key` (e.g. `"A2"`).
-  /// The remote data source must transform this to the API format:
-  /// `[ { "questionId": "...", "correct": "A2" }, ... ]`
+  @override
   Future<ExamResultModel> submitExam({
     required String examId,
     required Map<String, String> answers,
@@ -48,7 +31,7 @@ class ExamMockDataSource {
     await Future.delayed(_mockDelay);
 
     // Calculate result from mock questions
-    final examQuestions = _questions.where((q) => q.exam == examId).toList();
+    final examQuestions = _questions.where((q) => q.examId == examId).toList();
     int correct = 0;
     int wrong = 0;
     final wrongList = <WrongQuestionInfo>[];
@@ -62,7 +45,7 @@ class ExamMockDataSource {
         if (userAnswer != null) {
           wrongList.add(WrongQuestionInfo(
             questionId: q.id,
-            userAnswer: userAnswer,
+            questionText: q.question,
             correctAnswer: q.correct,
           ));
         }
@@ -77,6 +60,7 @@ class ExamMockDataSource {
     );
   }
 
+  @override
   Future<List<ExamHistoryModel>> getExamHistory() async {
     await Future.delayed(_mockDelay);
     return _examHistory;
@@ -98,11 +82,11 @@ class ExamMockDataSource {
   ];
 
   static const _questions = [
-    QuestionModel(id: 'q1', question: 'Select the correctly punctuated sentence.', a1: 'Its going to rain today.', a2: "It's going to rain today.", a3: 'Its going to rain today.', a4: 'Its going to rain today.', correct: 'A2', subject: 'subj_lang', exam: 'exam_eng_1'),
-    QuestionModel(id: 'q2', question: 'Which sentence uses the correct form of "their"?', a1: "Their going to the store.", a2: "There going to the store.", a3: "They're going to the store.", a4: "Thier going to the store.", correct: 'A3', subject: 'subj_lang', exam: 'exam_eng_1'),
-    QuestionModel(id: 'q3', question: 'Choose the correct past tense of "run".', a1: 'Runned', a2: 'Ran', a3: 'Runed', a4: 'Running', correct: 'A2', subject: 'subj_lang', exam: 'exam_eng_1'),
-    QuestionModel(id: 'q4', question: 'Which word is a synonym for "happy"?', a1: 'Sad', a2: 'Angry', a3: 'Joyful', a4: 'Tired', correct: 'A3', subject: 'subj_lang', exam: 'exam_eng_1'),
-    QuestionModel(id: 'q5', question: 'Select the sentence with correct subject-verb agreement.', a1: 'The dogs runs fast.', a2: 'The dogs run fast.', a3: 'The dog run fast.', a4: 'The dogs running fast.', correct: 'A2', subject: 'subj_lang', exam: 'exam_eng_1'),
+    QuestionModel(id: 'q1', question: 'Select the correctly punctuated sentence.', a1: 'Its going to rain today.', a2: "It's going to rain today.", a3: 'Its going to rain today.', a4: 'Its going to rain today.', correct: 'A2', subjectId: 'subj_lang', examId: 'exam_eng_1'),
+    QuestionModel(id: 'q2', question: 'Which sentence uses the correct form of "their"?', a1: "Their going to the store.", a2: "There going to the store.", a3: "They're going to the store.", a4: "Thier going to the store.", correct: 'A3', subjectId: 'subj_lang', examId: 'exam_eng_1'),
+    QuestionModel(id: 'q3', question: 'Choose the correct past tense of "run".', a1: 'Runned', a2: 'Ran', a3: 'Runed', a4: 'Running', correct: 'A2', subjectId: 'subj_lang', examId: 'exam_eng_1'),
+    QuestionModel(id: 'q4', question: 'Which word is a synonym for "happy"?', a1: 'Sad', a2: 'Angry', a3: 'Joyful', a4: 'Tired', correct: 'A3', subjectId: 'subj_lang', examId: 'exam_eng_1'),
+    QuestionModel(id: 'q5', question: 'Select the sentence with correct subject-verb agreement.', a1: 'The dogs runs fast.', a2: 'The dogs run fast.', a3: 'The dog run fast.', a4: 'The dogs running fast.', correct: 'A2', subjectId: 'subj_lang', examId: 'exam_eng_1'),
   ];
 
   static const _examHistory = [

@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -105,10 +106,26 @@ class _StartExamBody extends StatelessWidget {
                   child: Row(
                     children: [
                       // Subject icon
-                      Image.asset(
-                        _subjectIcon(args.subject.name),
+                      CachedNetworkImage(
+                        imageUrl: args.subject.icon,
                         width: 40,
                         height: 40,
+                        fit: BoxFit.contain,
+                        placeholder: (_, __) => const SizedBox(
+                          width: 40,
+                          height: 40,
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ),
+                        errorWidget: (_, __, ___) => const Icon(
+                          Icons.school_outlined,
+                          color: AppColors.primary,
+                          size: 32,
+                        ),
                       ),
                       const SizedBox(width: AppDimensions.sm),
                       // Subject name
@@ -239,17 +256,6 @@ class _StartExamBody extends StatelessWidget {
     );
   }
 
-  /// Map subject name to its illustration asset.
-  String _subjectIcon(String subjectName) {
-    final lower = subjectName.toLowerCase();
-    if (lower.contains('lang')) return AppAssets.illustrationLanguageTranslator;
-    if (lower.contains('math')) return AppAssets.illustrationDraftingTools;
-    if (lower.contains('art')) return AppAssets.illustrationColorPalette;
-    if (lower.contains('sci') || lower.contains('bio') || lower.contains('chem')) {
-      return AppAssets.illustrationMicroscope;
-    }
-    return AppAssets.illustrationExamClipboard;
-  }
 }
 
 class _BulletPoint extends StatelessWidget {
