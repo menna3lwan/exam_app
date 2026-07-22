@@ -29,12 +29,15 @@ class Validators {
 
   /// Full password validation — reports the first failing rule.
   /// For a real-time breakdown of all rules, use [PasswordRules].
+  ///
+  /// Matches the API's password regex (verified from Postman error response):
+  /// `^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$`
   static String? password(String? value) {
     if (value == null || value.trim().isEmpty) {
       return 'Password is required';
     }
-    if (value.length < 6) {
-      return 'Password must be at least 6 characters';
+    if (value.length < 8) {
+      return 'Password must be at least 8 characters';
     }
     if (!RegExp(r'[A-Z]').hasMatch(value)) {
       return 'Password must contain an upper case letter';
@@ -44,6 +47,9 @@ class Validators {
     }
     if (!RegExp(r'[0-9]').hasMatch(value)) {
       return 'Password must contain at least one number';
+    }
+    if (!RegExp(r'[#?!@$%^&*-]').hasMatch(value)) {
+      return 'Password must contain a special character';
     }
     return null;
   }
@@ -97,15 +103,18 @@ class Validators {
 class PasswordRules {
   PasswordRules._();
 
-  static bool hasMinLength(String value) => value.length >= 6;
+  static bool hasMinLength(String value) => value.length >= 8;
   static bool hasUpperCase(String value) => RegExp(r'[A-Z]').hasMatch(value);
   static bool hasLowerCase(String value) => RegExp(r'[a-z]').hasMatch(value);
   static bool hasDigit(String value) => RegExp(r'[0-9]').hasMatch(value);
+  static bool hasSpecialChar(String value) =>
+      RegExp(r'[#?!@$%^&*-]').hasMatch(value);
 
   /// All rules pass.
   static bool isValid(String value) =>
       hasMinLength(value) &&
       hasUpperCase(value) &&
       hasLowerCase(value) &&
-      hasDigit(value);
+      hasDigit(value) &&
+      hasSpecialChar(value);
 }

@@ -19,12 +19,14 @@ class AppRoutes {
 
   // Home (Phase 3)
   static const String home = '/home';
+  static const String subjectExams = '/subject-exams';
 
   // Exam flow (Phase 4)
   static const String examDetails = '/exam-details';
   static const String startExam = '/start-exam';
   static const String examSession = '/exam-session';
   static const String examResult = '/exam-result';
+  static const String answersReview = '/answers-review';
 
   // Results & Profile (Phase 5)
   static const String results = '/results';

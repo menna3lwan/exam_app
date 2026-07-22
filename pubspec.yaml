@@ -5,7 +5,7 @@ publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.11.0
+  sdk: ^3.5.0
 
 # Dependencies specify other packages that your package needs in order to work.
 #
@@ -26,7 +26,6 @@ dependencies:
   flutter_bloc: ^9.1.1
   get_it: ^9.2.1
   pretty_dio_logger: ^1.4.0
-  injectable:
 
   # --- New for Phase 1 (design system / localization foundation) ---
   # Figma type styles use "Inter" (weights 400/500). Loaded via google_fonts
@@ -34,6 +33,14 @@ dependencies:
   google_fonts: ^6.2.1
   # SVG icon rendering for Figma-exported icon assets.
   flutter_svg: ^2.0.17
+  # --- New for API Integration (Auth Phase) ---
+  # Secure token persistence (AES-encrypted on both platforms).
+  flutter_secure_storage: ^9.2.4
+  # Remember Me flag + lightweight user preferences.
+  shared_preferences: ^2.3.4
+  # Network image loading with disk/memory caching.
+  cached_network_image: ^3.4.1
+
   # Required by flutter_localizations / ARB-based localization foundation.
   # Left unpinned deliberately: flutter_localizations (SDK) pins an exact
   # intl version per Flutter release, and adding our own caret constraint
@@ -45,7 +52,6 @@ dev_dependencies:
     sdk: flutter
   retrofit_generator: ^10.0.1
   build_runner: ^2.6.0
-  injectable_generator:
   flutter_lints: ^6.0.0
 
 flutter:
