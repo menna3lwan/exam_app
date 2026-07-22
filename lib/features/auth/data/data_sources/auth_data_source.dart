@@ -1,4 +1,5 @@
 import '../models/auth_response_model.dart';
+import '../models/user_model.dart';
 
 /// Abstract contract for auth data sources.
 ///
@@ -39,4 +40,26 @@ abstract class AuthDataSource {
 
   /// GET /auth/logout — invalidates token server-side.
   Future<void> logout();
+
+  // ── Profile operations ──
+
+  /// GET /auth/profileData — returns logged-in user info.
+  Future<UserModel> getProfile();
+
+  /// PUT /auth/editProfile — updates user profile fields.
+  /// Accepts partial updates (any subset of user fields).
+  Future<UserModel> updateProfile({
+    String? username,
+    String? firstName,
+    String? lastName,
+    String? email,
+    String? phone,
+  });
+
+  /// PATCH /auth/changePassword — changes password for logged-in user.
+  Future<void> changePassword({
+    required String oldPassword,
+    required String newPassword,
+    required String confirmPassword,
+  });
 }

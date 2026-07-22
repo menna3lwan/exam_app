@@ -40,14 +40,66 @@ class ResultTab extends StatelessWidget {
                   return ResourceStateBuilder<List<ExamHistoryModel>>(
                     resource: resource,
                     onSuccess: (context, items) {
+                      if (items.isEmpty) return _buildEmptyState();
                       return _buildGroupedList(items);
                     },
+                    onError: (context, _) => _buildErrorState(context),
                   );
                 },
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.history_outlined, size: 64, color: AppColors.gray),
+          const SizedBox(height: AppDimensions.md),
+          Text(
+            'No results yet',
+            style: AppTextStyles.bodyLarge.copyWith(color: AppColors.gray),
+          ),
+          const SizedBox(height: AppDimensions.xs),
+          Text(
+            'Complete an exam to see your results here',
+            style: AppTextStyles.bodySmall.copyWith(color: AppColors.gray),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorState(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.cloud_off_outlined, size: 64, color: AppColors.gray),
+          const SizedBox(height: AppDimensions.md),
+          Text(
+            'Could not load results',
+            style: AppTextStyles.bodyLarge.copyWith(color: AppColors.gray),
+          ),
+          const SizedBox(height: AppDimensions.lg),
+          SizedBox(
+            width: 140,
+            child: OutlinedButton(
+              onPressed: () =>
+                  context.read<ResultsCubit>().loadHistory(),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.primary,
+                side: const BorderSide(color: AppColors.primary),
+              ),
+              child: const Text('Retry'),
+            ),
+          ),
+        ],
       ),
     );
   }

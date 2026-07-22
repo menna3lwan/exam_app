@@ -77,4 +77,33 @@ class AuthMockDataSource implements AuthDataSource {
   Future<void> logout() async {
     await Future.delayed(_mockDelay);
   }
+
+  // ── Profile ──
+
+  @override
+  Future<UserModel> getProfile() async {
+    await Future.delayed(_mockDelay);
+    return _mockUser;
+  }
+
+  @override
+  Future<UserModel> updateProfile({
+    String? username,
+    String? firstName,
+    String? lastName,
+    String? email,
+    String? phone,
+  }) async {
+    await Future.delayed(_mockDelay);
+    return _mockUser;
+  }
+
+  @override
+  Future<void> changePassword({
+    required String oldPassword,
+    required String newPassword,
+    required String confirmPassword,
+  }) async {
+    await Future.delayed(_mockDelay);
+  }
 }

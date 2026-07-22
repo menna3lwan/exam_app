@@ -15,15 +15,19 @@ import '../../features/auth/data/data_sources/auth_data_source.dart';
 import '../../features/auth/data/data_sources/auth_remote_data_source.dart';
 import '../../features/auth/data/repos/auth_repository_impl.dart';
 import '../../features/auth/domain/repos/auth_repository.dart';
+import '../../features/auth/domain/use_cases/change_password_use_case.dart';
 import '../../features/auth/domain/use_cases/forget_password_use_case.dart';
+import '../../features/auth/domain/use_cases/get_profile_use_case.dart';
 import '../../features/auth/domain/use_cases/login_use_case.dart';
 import '../../features/auth/domain/use_cases/logout_use_case.dart';
 import '../../features/auth/domain/use_cases/reset_password_use_case.dart';
 import '../../features/auth/domain/use_cases/sign_up_use_case.dart';
+import '../../features/auth/domain/use_cases/update_profile_use_case.dart';
 import '../../features/auth/domain/use_cases/verify_code_use_case.dart';
 import '../../features/auth/presentation/cubits/forget_password/forget_password_cubit.dart';
 import '../../features/auth/presentation/cubits/login/login_cubit.dart';
 import '../../features/auth/presentation/cubits/logout/logout_cubit.dart';
+import '../../features/auth/presentation/cubits/profile/profile_cubit.dart';
 import '../../features/auth/presentation/cubits/reset_password/reset_password_cubit.dart';
 import '../../features/auth/presentation/cubits/sign_up/sign_up_cubit.dart';
 import '../../features/auth/presentation/cubits/verify_code/verify_code_cubit.dart';
@@ -121,6 +125,18 @@ void configureDependencies(SharedPreferences prefs) {
     () => ResetPasswordCubit(getIt<ResetPasswordUseCase>()),
   );
   getIt.registerFactory(() => LogoutCubit(getIt<LogoutUseCase>()));
+
+  // ── Profile (uses Auth endpoints) ──
+  getIt.registerFactory(() => GetProfileUseCase(getIt<AuthRepository>()));
+  getIt.registerFactory(() => UpdateProfileUseCase(getIt<AuthRepository>()));
+  getIt.registerFactory(() => ChangePasswordUseCase(getIt<AuthRepository>()));
+  getIt.registerFactory(
+    () => ProfileCubit(
+      getProfileUseCase: getIt<GetProfileUseCase>(),
+      updateProfileUseCase: getIt<UpdateProfileUseCase>(),
+      changePasswordUseCase: getIt<ChangePasswordUseCase>(),
+    ),
+  );
 
   // ───────────────────────── Home ─────────────────────────
 

@@ -4,6 +4,7 @@ import '../../../../core/services/token_service.dart';
 import '../../domain/repos/auth_repository.dart';
 import '../data_sources/auth_data_source.dart';
 import '../models/auth_response_model.dart';
+import '../models/user_model.dart';
 
 /// Auth repository implementation — data layer.
 ///
@@ -94,6 +95,52 @@ class AuthRepositoryImpl implements AuthRepository {
     return safeCall(() async {
       await _dataSource.logout();
       await _tokenService.clearSession();
+      return const Success(null);
+    });
+  }
+
+  // ── Profile ──
+
+  @override
+  Future<ApiResults<UserModel>> getProfile() {
+    return safeCall(() async {
+      final user = await _dataSource.getProfile();
+      return Success(user);
+    });
+  }
+
+  @override
+  Future<ApiResults<UserModel>> updateProfile({
+    String? username,
+    String? firstName,
+    String? lastName,
+    String? email,
+    String? phone,
+  }) {
+    return safeCall(() async {
+      final user = await _dataSource.updateProfile(
+        username: username,
+        firstName: firstName,
+        lastName: lastName,
+        email: email,
+        phone: phone,
+      );
+      return Success(user);
+    });
+  }
+
+  @override
+  Future<ApiResults<void>> changePassword({
+    required String oldPassword,
+    required String newPassword,
+    required String confirmPassword,
+  }) {
+    return safeCall(() async {
+      await _dataSource.changePassword(
+        oldPassword: oldPassword,
+        newPassword: newPassword,
+        confirmPassword: confirmPassword,
+      );
       return const Success(null);
     });
   }

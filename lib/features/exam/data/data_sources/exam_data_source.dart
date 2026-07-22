@@ -23,6 +23,6 @@ abstract class ExamDataSource {
     required int timeSpentSeconds,
   });
 
-  /// GET /exams/history — returns user's past exam results.
+  /// GET /questions/history — returns user's past exam results.
   Future<List<ExamHistoryModel>> getExamHistory();
 }

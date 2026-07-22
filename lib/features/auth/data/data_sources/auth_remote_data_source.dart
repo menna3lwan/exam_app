@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 
 import '../models/auth_response_model.dart';
+import '../models/user_model.dart';
 import 'auth_data_source.dart';
 
 /// Remote data source for auth operations using Dio.
@@ -99,5 +100,61 @@ class AuthRemoteDataSource implements AuthDataSource {
   Future<void> logout() async {
     // Postman: GET /auth/logout with token header (attached by AuthInterceptor)
     await _dio.get('/auth/logout');
+  }
+
+  // ── Profile operations ──
+
+  /// GET /auth/profileData — returns logged-in user info.
+  @override
+  Future<UserModel> getProfile() async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/auth/profileData',
+    );
+    final data = response.data;
+    // Response expected: { "user": { ... } } or flat user object.
+    final userJson = data?['user'] as Map<String, dynamic>? ?? data ?? {};
+    return UserModel.fromJson(userJson);
+  }
+
+  /// PUT /auth/editProfile — partial update of profile fields.
+  @override
+  Future<UserModel> updateProfile({
+    String? username,
+    String? firstName,
+    String? lastName,
+    String? email,
+    String? phone,
+  }) async {
+    final body = <String, dynamic>{};
+    if (username != null) body['username'] = username;
+    if (firstName != null) body['firstName'] = firstName;
+    if (lastName != null) body['lastName'] = lastName;
+    if (email != null) body['email'] = email;
+    if (phone != null) body['phone'] = phone;
+
+    final response = await _dio.put<Map<String, dynamic>>(
+      '/auth/editProfile',
+      data: body,
+    );
+    final data = response.data;
+    final userJson = data?['user'] as Map<String, dynamic>? ?? data ?? {};
+    return UserModel.fromJson(userJson);
+  }
+
+  /// PATCH /auth/changePassword
+  @override
+  Future<void> changePassword({
+    required String oldPassword,
+    required String newPassword,
+    required String confirmPassword,
+  }) async {
+    await _dio.patch(
+      '/auth/changePassword',
+      data: {
+        'oldPassword': oldPassword,
+        'password': newPassword,
+        'rePassword': confirmPassword,
+      },
+    );
   }
 }

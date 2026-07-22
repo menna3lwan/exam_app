@@ -21,14 +21,32 @@ class ExamHistoryModel {
   });
 
   factory ExamHistoryModel.fromJson(Map<String, dynamic> json) {
+    // Extract exam/subject info from nested objects if present,
+    // or fall back to flat field names (mock data shape).
+    final exam = json['exam'] as Map<String, dynamic>?;
+    final subject = json['subject'] as Map<String, dynamic>?;
+
     return ExamHistoryModel(
       id: json['_id'] as String? ?? '',
-      examTitle: json['examTitle'] as String? ?? '',
-      subjectName: json['subjectName'] as String? ?? '',
-      numberOfQuestions: json['numberOfQuestions'] as int? ?? 0,
-      durationMinutes: json['durationMinutes'] as int? ?? 0,
-      correctAnswers: json['correctAnswers'] as int? ?? 0,
-      timeSpentMinutes: json['timeSpentMinutes'] as int? ?? 0,
+      examTitle: exam?['title'] as String? ??
+          json['examTitle'] as String? ??
+          '',
+      subjectName: subject?['name'] as String? ??
+          json['subjectName'] as String? ??
+          '',
+      numberOfQuestions: exam?['numberOfQuestions'] as int? ??
+          json['numberOfQuestions'] as int? ??
+          0,
+      durationMinutes: exam?['duration'] as int? ??
+          json['durationMinutes'] as int? ??
+          json['duration'] as int? ??
+          0,
+      correctAnswers: json['correctAnswers'] as int? ??
+          json['correct'] as int? ??
+          0,
+      timeSpentMinutes: json['timeSpentMinutes'] as int? ??
+          json['time'] as int? ??
+          0,
     );
   }
 

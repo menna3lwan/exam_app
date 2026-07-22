@@ -73,17 +73,26 @@ class ExamRemoteDataSource implements ExamDataSource {
     return ExamResultModel.fromJson(data);
   }
 
-  /// GET /exams/history
-  /// Response shape not yet verified — falls back to empty list on error.
+  /// GET /questions/history
+  /// Returns user's past exam attempts — belongs to the Questions module
+  /// per the Postman collection (not /exams/history, which the server
+  /// interprets as GET /exams/{id} where id="history").
   @override
   Future<List<ExamHistoryModel>> getExamHistory() async {
     final response =
-        await _dio.get<Map<String, dynamic>>('/exams/history');
+        await _dio.get<Map<String, dynamic>>('/questions/history');
     final data = response.data;
     if (data == null) return [];
 
-    final exams = data['exams'] as List<dynamic>? ?? [];
-    return exams
+    // Response key is not confirmed — try known candidates.
+    // Other question endpoints use 'questions'; history might use
+    // 'exams', 'history', or something else.
+    final items = (data['exams'] ??
+            data['questions'] ??
+            data['history'] ??
+            data['data']) as List<dynamic>? ??
+        [];
+    return items
         .map((e) => ExamHistoryModel.fromJson(e as Map<String, dynamic>))
         .toList();
   }

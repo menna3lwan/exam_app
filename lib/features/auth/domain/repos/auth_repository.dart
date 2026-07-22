@@ -1,5 +1,6 @@
 import '../../../../core/network/api_results.dart';
 import '../../data/models/auth_response_model.dart';
+import '../../data/models/user_model.dart';
 
 /// Auth repository contract — domain layer.
 ///
@@ -38,4 +39,25 @@ abstract class AuthRepository {
 
   /// Invalidates token server-side and clears local session.
   Future<ApiResults<void>> logout();
+
+  // ── Profile ──
+
+  /// GET /auth/profileData — returns logged-in user info.
+  Future<ApiResults<UserModel>> getProfile();
+
+  /// PUT /auth/editProfile — updates user profile fields.
+  Future<ApiResults<UserModel>> updateProfile({
+    String? username,
+    String? firstName,
+    String? lastName,
+    String? email,
+    String? phone,
+  });
+
+  /// PATCH /auth/changePassword
+  Future<ApiResults<void>> changePassword({
+    required String oldPassword,
+    required String newPassword,
+    required String confirmPassword,
+  });
 }
