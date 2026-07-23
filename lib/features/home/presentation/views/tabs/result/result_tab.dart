@@ -41,9 +41,10 @@ class ResultTab extends StatelessWidget {
                     resource: resource,
                     onSuccess: (context, items) {
                       if (items.isEmpty) return _buildEmptyState();
-                      return _buildGroupedList(items);
+                      return _buildGroupedList(context, items);
                     },
-                    onError: (context, _) => _buildErrorState(context),
+                    onError: (context, message) =>
+                        _buildErrorState(context, message),
                   );
                 },
               ),
@@ -75,7 +76,7 @@ class ResultTab extends StatelessWidget {
     );
   }
 
-  Widget _buildErrorState(BuildContext context) {
+  Widget _buildErrorState(BuildContext context, String? message) {
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -86,6 +87,17 @@ class ResultTab extends StatelessWidget {
             'Could not load results',
             style: AppTextStyles.bodyLarge.copyWith(color: AppColors.gray),
           ),
+          if (message != null && message.isNotEmpty) ...[
+            const SizedBox(height: AppDimensions.xs),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppDimensions.lg),
+              child: Text(
+                message,
+                textAlign: TextAlign.center,
+                style: AppTextStyles.bodySmall.copyWith(color: AppColors.gray),
+              ),
+            ),
+          ],
           const SizedBox(height: AppDimensions.lg),
           SizedBox(
             width: 140,
@@ -104,24 +116,35 @@ class ResultTab extends StatelessWidget {
     );
   }
 
-  Widget _buildGroupedList(List<ExamHistoryModel> items) {
+  Widget _buildGroupedList(
+    BuildContext context,
+    List<ExamHistoryModel> items,
+  ) {
     // Group by subject name
     final grouped = <String, List<ExamHistoryModel>>{};
     for (final item in items) {
       grouped.putIfAbsent(item.subjectName, () => []).add(item);
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.only(bottom: AppDimensions.md),
-      itemCount: grouped.length,
-      itemBuilder: (context, index) {
-        final subject = grouped.keys.elementAt(index);
-        final exams = grouped[subject]!;
-        return _SubjectResultGroup(
-          subjectName: subject,
-          exams: exams,
-        );
-      },
+    // Pre-compute keys to avoid O(n) elementAt on each builder call.
+    final subjects = grouped.keys.toList();
+
+    return RefreshIndicator(
+      onRefresh: () => context.read<ResultsCubit>().loadHistory(isRefresh: true),
+      color: AppColors.primary,
+      child: ListView.builder(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.only(bottom: AppDimensions.md),
+        itemCount: subjects.length,
+        itemBuilder: (context, index) {
+          final subject = subjects[index];
+          final exams = grouped[subject]!;
+          return _SubjectResultGroup(
+            subjectName: subject,
+            exams: exams,
+          );
+        },
+      ),
     );
   }
 }
@@ -200,10 +223,13 @@ class _ResultCard extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      exam.examTitle,
-                      style: AppTextStyles.titleSmall.copyWith(
-                        fontWeight: FontWeight.w600,
+                    Flexible(
+                      child: Text(
+                        exam.examTitle,
+                        style: AppTextStyles.titleSmall.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     Text(
@@ -216,14 +242,14 @@ class _ResultCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '${exam.numberOfQuestions} Question',
+                  '${exam.numberOfQuestions} Questions',
                   style: AppTextStyles.bodySmall.copyWith(
                     color: AppColors.gray,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${exam.correctAnswers} corrected answers in ${exam.timeSpentMinutes} min.',
+                  '${exam.correctAnswers} correct from ${exam.numberOfQuestions} in ${exam.timeSpentMinutes} min.',
                   style: AppTextStyles.labelSmall.copyWith(
                     color: AppColors.primary,
                   ),

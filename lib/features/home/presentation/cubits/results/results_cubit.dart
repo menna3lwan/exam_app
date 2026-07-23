@@ -13,8 +13,16 @@ class ResultsCubit extends Cubit<Resources<List<ExamHistoryModel>>> {
 
   ResultsCubit(this._getExamHistoryUseCase) : super(Resources.init());
 
-  Future<void> loadHistory() async {
-    emit(Resources.loading());
+  /// Loads exam history from the API.
+  ///
+  /// When [isRefresh] is true (pull-to-refresh), the current data stays
+  /// visible instead of showing a loading spinner. On refresh failure the
+  /// existing data is preserved — only initial load failures show the
+  /// error state.
+  Future<void> loadHistory({bool isRefresh = false}) async {
+    if (!isRefresh) {
+      emit(Resources.loading());
+    }
 
     final result = await _getExamHistoryUseCase();
 
@@ -24,7 +32,11 @@ class ResultsCubit extends Cubit<Resources<List<ExamHistoryModel>>> {
       case Success(:final data):
         emit(Resources.success(data: data ?? []));
       case Failure(:final message):
-        emit(Resources.error(message: message ?? 'Failed to load results'));
+        // During a refresh, keep the old data visible rather than
+        // replacing the entire UI with an error state.
+        if (!isRefresh) {
+          emit(Resources.error(message: message ?? 'Failed to load results'));
+        }
     }
   }
 }

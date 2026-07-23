@@ -1,44 +1,332 @@
 # Exam App
 
-> **Elevate Online Exams** — A Flutter mobile application for browsing subjects, taking timed multiple-choice exams, reviewing results, and managing user profiles. Built with Clean Architecture, Bloc/Cubit state management, and full REST API integration.
+<p align="center">
+  <img src="screenshots/08-explore.png" alt="Explore screen" width="220" />
+  <img src="screenshots/12-exam-session.png" alt="Exam session screen" width="220" />
+  <img src="screenshots/15-results.png" alt="Results screen" width="220" />
+</p>
 
-**Version:** 1.0.0+1  
-**Dart SDK:** ^3.5.0  
-**API:** Elevate Online Exams (`https://exam.elevateegy.com/api/v1`)
+<p align="center">
+  <strong>Elevate Online Exams</strong> — A production-ready Flutter client for browsing subjects, taking timed exams, reviewing answers, and managing profiles.
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Flutter-3.5+-02569B?logo=flutter&logoColor=white" alt="Flutter" />
+  <img src="https://img.shields.io/badge/Dart-3.5+-0175C2?logo=dart&logoColor=white" alt="Dart" />
+  <img src="https://img.shields.io/badge/Architecture-Clean_Architecture-34A853" alt="Clean Architecture" />
+  <img src="https://img.shields.io/badge/State-Bloc%20%2F%20Cubit-4285F4" alt="Bloc Cubit" />
+  <img src="https://img.shields.io/badge/API-REST%20%2F%20Dio-FF6F00" alt="REST API" />
+  <img src="https://img.shields.io/badge/Platform-iOS%20%26%20Android-lightgrey" alt="Platform" />
+</p>
+
+**Version:** 1.0.0+1 · **Dart SDK:** ^3.5.0 · **API:** [Elevate Online Exams](https://exam.elevateegy.com/api/v1)
 
 ---
 
 ## Table of Contents
 
 1. [Project Overview](#1-project-overview)
-2. [Project Structure](#2-project-structure)
-3. [Architecture](#3-architecture)
-4. [Features](#4-features)
-5. [Application Flow](#5-application-flow)
-6. [API Integration](#6-api-integration)
-7. [Dependencies](#7-dependencies)
-8. [Environment Configuration](#8-environment-configuration)
-9. [Assets](#9-assets)
-10. [Coding Guidelines](#10-coding-guidelines)
-11. [UX Rules](#11-ux-rules)
-12. [Known Limitations](#12-known-limitations)
-13. [Testing](#13-testing)
-14. [Contributing](#14-contributing)
-15. [Changelog](#15-changelog)
+2. [Application Screenshots](#2-application-screenshots)
+3. [Project Structure](#3-project-structure)
+4. [Architecture](#4-architecture)
+5. [Features](#5-features)
+6. [Application Flow](#6-application-flow)
+7. [API Integration](#7-api-integration)
+8. [Dependencies](#8-dependencies)
+9. [Environment Configuration](#9-environment-configuration)
+10. [Assets](#10-assets)
+11. [Coding Guidelines](#11-coding-guidelines)
+12. [UX Rules](#12-ux-rules)
+13. [Known Limitations](#13-known-limitations)
+14. [Testing](#14-testing)
+15. [Contributing](#15-contributing)
+16. [Changelog](#16-changelog)
 
 ---
 
 ## 1. Project Overview
 
-Exam App is the Flutter client for the Elevate Online Exams platform. It targets iOS and Android and communicates with a Node.js REST API via Dio. The app provides a complete exam lifecycle: authentication (login, sign-up, password recovery), browsing subjects and their exams, taking timed exams with question navigation, viewing scored results with answer review, and managing the user profile (edit details, change password).
+Exam App is the Flutter client for the **Elevate Online Exams** platform. It targets iOS and Android and communicates with a Node.js REST API via Dio. The app covers the full exam lifecycle:
 
-**Design source of truth:** Figma file (Elevate Online Exams).  
-**API source of truth:** Postman Collection (Elevate Online Exams).  
-**Architecture pattern:** Feature-first Clean Architecture with Bloc/Cubit, GetIt DI, Repository Pattern, and Use Cases.
+- **Authentication** — login, sign-up, password recovery, session management
+- **Explore** — browse subjects and search exams
+- **Exam flow** — timed sessions, scoring, and answer review
+- **Results** — exam history grouped by subject
+- **Profile** — edit account details and change password
+
+**Design source of truth:** Figma (Elevate Online Exams)  
+**API source of truth:** Postman Collection (Elevate Online Exams)  
+**Architecture:** Feature-first Clean Architecture · Bloc/Cubit · GetIt DI · Repository Pattern
+
+### Quick Start
+
+```bash
+git clone <repository-url>
+cd exam_app
+flutter pub get
+flutter run
+```
 
 ---
 
-## 2. Project Structure
+## 2. Application Screenshots
+
+Screens are ordered by the **real user journey** — from authentication through exam completion and profile management. Every image lives in [`screenshots/`](screenshots/) with a stable filename for GitHub rendering.
+
+> **Note:** Splash, Verification Code, and Reset Password screens are implemented in the app but not included in the current screenshot set.
+
+### Gallery Overview
+
+<table>
+  <tr>
+    <td align="center"><img src="screenshots/01-login.png" width="240" alt="Login"/><br/><sub><b>Login</b></sub></td>
+    <td align="center"><img src="screenshots/02-sign-up.png" width="240" alt="Sign Up"/><br/><sub><b>Sign Up</b></sub></td>
+    <td align="center"><img src="screenshots/07-forget-password.png" width="240" alt="Forget Password"/><br/><sub><b>Forget Password</b></sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="screenshots/08-explore.png" width="240" alt="Explore"/><br/><sub><b>Explore</b></sub></td>
+    <td align="center"><img src="screenshots/12-exam-session.png" width="240" alt="Exam Session"/><br/><sub><b>Exam Session</b></sub></td>
+    <td align="center"><img src="screenshots/13-exam-score.png" width="240" alt="Exam Score"/><br/><sub><b>Exam Score</b></sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="screenshots/15-results.png" width="240" alt="Results"/><br/><sub><b>Results</b></sub></td>
+    <td align="center"><img src="screenshots/17-profile.png" width="240" alt="Profile"/><br/><sub><b>Profile</b></sub></td>
+    <td align="center"><img src="screenshots/18-change-password.png" width="240" alt="Change Password"/><br/><sub><b>Change Password</b></sub></td>
+  </tr>
+</table>
+---
+
+### Authentication
+
+#### Login
+
+Entry point for returning users. Validates credentials and persists the session when **Remember Me** is enabled.
+
+- Secure email & password authentication
+- Live field validation
+- Remember Me session persistence
+- Forgot Password navigation
+- Sign Up link for new users
+- Password visibility toggle
+
+<p align="center">
+  <img src="screenshots/01-login.png" alt="Login screen" width="300" />
+</p>
+
+---
+
+#### Sign Up
+
+Registration form for new accounts with real-time validation feedback.
+
+- Full registration fields (username, name, email, phone, password)
+- Password visibility toggles
+- Live password requirement checklist
+- Egyptian phone number format validation
+- Confirm-password matching
+- Navigation to Login for existing users
+
+<p align="center">
+  <img src="screenshots/02-sign-up.png" alt="Sign Up screen" width="300" />
+</p>
+
+**Live validation states** — password rules, phone format, and mismatch errors update as the user types:
+
+<table>
+  <tr>
+    <td align="center"><img src="screenshots/03-sign-up-password-validation.png" width="220" alt="Password validation"/><br/><sub>Password rules</sub></td>
+    <td align="center"><img src="screenshots/04-sign-up-phone-validation.png" width="220" alt="Phone validation"/><br/><sub>Phone format</sub></td>
+    <td align="center"><img src="screenshots/05-sign-up-validation-errors.png" width="220" alt="Validation errors"/><br/><sub>Combined errors</sub></td>
+  </tr>
+  <tr>
+    <td align="center" colspan="3"><img src="screenshots/06-sign-up-validation-overview.png" width="220" alt="Validation overview"/><br/><sub>Full validation overview</sub></td>
+  </tr>
+</table>
+
+---
+
+#### Forget Password
+
+First step of the password recovery flow — collects the account email to send a reset code.
+
+- Clear instructional copy
+- Single-field focused UX
+- Continue action to verification step
+- Back navigation to Login
+
+<p align="center">
+  <img src="screenshots/07-forget-password.png" alt="Forget Password screen" width="300" />
+</p>
+
+---
+
+### Home & Explore
+
+#### Explore (Home Tab)
+
+Main hub after login — browse subjects and search for topics.
+
+- Subject list with API-served icons
+- Debounced search bar
+- Card-based subject layout
+- Bottom navigation (Explore · Result · Profile)
+- Pull-to-refresh ready architecture
+
+<p align="center">
+  <img src="screenshots/08-explore.png" alt="Explore screen" width="300" />
+</p>
+
+**Login success feedback** — SnackBar confirmation after a successful sign-in:
+
+<p align="center">
+  <img src="screenshots/09-explore-login-success.png" alt="Explore with login success snackbar" width="300" />
+</p>
+
+---
+
+### Exam Flow
+
+#### Subject Exams
+
+Lists all exams available under a selected subject.
+
+- Subject-scoped exam listing
+- Exam title, question count, and duration per card
+- Branded subject icon
+- Tap-through to Start Exam
+
+<p align="center">
+  <img src="screenshots/10-subject-exams.png" alt="Subject exams screen" width="300" />
+</p>
+
+---
+
+#### Start Exam
+
+Pre-exam briefing screen with instructions before the session begins.
+
+- Exam metadata (title, questions, duration)
+- Instruction list
+- Prominent Start CTA
+- Back navigation
+
+<p align="center">
+  <img src="screenshots/11-start-exam.png" alt="Start exam screen" width="300" />
+</p>
+
+---
+
+#### Exam Session
+
+Timed multiple-choice exam with navigation and progress tracking.
+
+- Live countdown timer
+- Question progress bar (e.g. Question 1 of 10)
+- Single-choice answer cards
+- Next / Back navigation
+- Auto-submit on timer expiry
+
+<p align="center">
+  <img src="screenshots/12-exam-session.png" alt="Exam session screen" width="300" />
+</p>
+
+---
+
+#### Exam Score
+
+Post-submission score summary with visual percentage breakdown.
+
+- Circular score chart with percentage
+- Correct vs incorrect counts
+- Show results → Answers Review
+- Start again → Home
+
+<p align="center">
+  <img src="screenshots/13-exam-score.png" alt="Exam score screen" width="300" />
+</p>
+
+---
+
+#### Answers Review
+
+Detailed review of every question with correct answers highlighted.
+
+- Scrollable question list
+- Green highlight for correct answers
+- Red highlight for wrong user selections
+- Radio/checkbox indicators per answer state
+
+<p align="center">
+  <img src="screenshots/14-answers-review.png" alt="Answers review screen" width="300" />
+</p>
+
+---
+
+### Results Tab
+
+#### Results (Success)
+
+Exam history grouped by subject with performance summaries.
+
+- Grouped by subject name
+- Exam title, question count, duration
+- Score summary (correct / total / time)
+- Pull-to-refresh support
+
+<p align="center">
+  <img src="screenshots/15-results.png" alt="Results screen with data" width="300" />
+</p>
+
+---
+
+#### Results (Error State)
+
+Graceful error handling when history fails to load.
+
+- User-friendly error message
+- Retry action re-triggers the API call
+- Preserves tab navigation context
+
+<p align="center">
+  <img src="screenshots/16-results-error.png" alt="Results error state" width="300" />
+</p>
+
+---
+
+### Profile
+
+#### Profile Tab
+
+Account management with editable fields loaded from the API.
+
+- Real user data from `GET /auth/profileData`
+- Editable username, name, email, phone
+- Masked password with Change action
+- Update Profile with validation
+- Logout with session clear
+
+<p align="center">
+  <img src="screenshots/17-profile.png" alt="Profile screen" width="300" />
+</p>
+
+---
+
+#### Change Password
+
+Bottom sheet for secure password updates without leaving Profile.
+
+- Current / new / confirm password fields
+- Password visibility toggles
+- Loading state on submit
+- Auto-close on success
+
+<p align="center">
+  <img src="screenshots/18-change-password.png" alt="Change password bottom sheet" width="300" />
+</p>
+
+---
+
+## 3. Project Structure
 
 ```
 exam_app/
@@ -206,6 +494,11 @@ exam_app/
 │   ├── images/                            # Raster images (placeholder)
 │   └── svg/                               # Additional SVGs (placeholder)
 │
+├── screenshots/                           # Application screenshots for README / portfolio
+│   ├── 01-login.png
+│   ├── 02-sign-up.png
+│   └── …                                  # See README §2 for full list
+│
 ├── pubspec.yaml
 ├── analysis_options.yaml
 └── l10n.yaml                              # Localization config
@@ -213,7 +506,7 @@ exam_app/
 
 ---
 
-## 3. Architecture
+## 4. Architecture
 
 The app follows **Feature-First Clean Architecture** with strict layer separation. Every feature is self-contained under `lib/features/{feature_name}/` with three layers.
 
@@ -274,9 +567,9 @@ graph TD
 
 ---
 
-## 4. Features
+## 5. Features
 
-### 4.1 Authentication
+### 5.1 Authentication
 
 Screens: Splash, Login, Sign Up, Forget Password, Verification Code, Reset Password.
 
@@ -287,14 +580,14 @@ Screens: Splash, Login, Sign Up, Forget Password, Verification Code, Reset Passw
 - **Logout:** Calls `GET /auth/logout`, clears token and Remember Me flag, navigates to Login with stack clear.
 - **Session Expiry:** `AuthInterceptor` detects genuine 401/403 → clears session → fires `SessionEventBus` → app root listener navigates to Login. Re-entrancy guard prevents duplicate navigations from concurrent failing requests.
 
-### 4.2 Explore (Home Tab)
+### 5.2 Explore (Home Tab)
 
 - Displays a grid of subjects fetched from `GET /subjects`.
 - Subject cards show API-served icon images via `CachedNetworkImage`.
 - Search bar with debounced filtering.
 - Tapping a subject navigates to the Subject Exams screen.
 
-### 4.3 Exam Flow
+### 5.3 Exam Flow
 
 - **Subject Exams:** Lists all exams for a subject (`GET /exams?subject={id}`). Flat list (no grouping).
 - **Start Exam:** Shows exam details (title, number of questions, duration) with a Start button.
@@ -302,13 +595,13 @@ Screens: Splash, Login, Sign Up, Forget Password, Verification Code, Reset Passw
 - **Exam Result:** Score circle with percentage, correct/wrong counts. "Show Answers" button.
 - **Answers Review:** Scrollable list of all questions with correct answer highlighted and user's answer indicated (correct = green, wrong = red).
 
-### 4.4 Results (Home Tab)
+### 5.4 Results (Home Tab)
 
 - Lists past exam results from `GET /questions/history`.
 - Each card shows exam title, subject, score, and duration.
 - Loading, error (with retry), and empty states.
 
-### 4.5 Profile (Home Tab)
+### 5.5 Profile (Home Tab)
 
 - Loads real user data from `GET /auth/profileData`.
 - Editable fields: username, first name, last name, email, phone.
@@ -316,7 +609,7 @@ Screens: Splash, Login, Sign Up, Forget Password, Verification Code, Reset Passw
 - **Change Password:** Bottom sheet with current/new/confirm password fields. `PATCH /auth/changePassword`. Auto-closes on success.
 - All profile operations use overlay states (e.g., `ProfileUpdating` preserves the loaded user data while showing a loading indicator on the button only).
 
-### 4.6 Home Shell
+### 5.6 Home Shell
 
 - Bottom navigation with three tabs: Explore, Result, Profile.
 - `IndexedStack` preserves tab state across switches (no re-fetch on tab change).
@@ -324,7 +617,7 @@ Screens: Splash, Login, Sign Up, Forget Password, Verification Code, Reset Passw
 
 ---
 
-## 5. Application Flow
+## 6. Application Flow
 
 ```mermaid
 flowchart TD
@@ -369,7 +662,7 @@ flowchart TD
 
 ---
 
-## 6. API Integration
+## 7. API Integration
 
 **Base URL:** `https://exam.elevateegy.com/api/v1`  
 **Auth Header:** `token: <JWT>` (not `Authorization: Bearer`)
@@ -417,7 +710,7 @@ Dio (BaseOptions: 60s timeouts)
 
 ---
 
-## 7. Dependencies
+## 8. Dependencies
 
 ### Runtime
 
@@ -449,7 +742,7 @@ Dio (BaseOptions: 60s timeouts)
 
 ---
 
-## 8. Environment Configuration
+## 9. Environment Configuration
 
 The app uses `--dart-define` for environment selection. No `.env` files or build flavors needed.
 
@@ -475,7 +768,7 @@ flutter run --dart-define=ENV=prod
 
 ---
 
-## 9. Assets
+## 10. Assets
 
 All assets are under `assets/` and registered in `pubspec.yaml`.
 
@@ -486,6 +779,7 @@ All assets are under `assets/` and registered in `pubspec.yaml`.
 | `assets/images/` | Raster images (placeholder) | — |
 | `assets/svg/` | Additional SVGs (placeholder) | SVG |
 | `assets/files/` | Miscellaneous files (placeholder) | — |
+| `screenshots/` | Application screenshots (README gallery) | PNG |
 
 All asset paths are centralized in `lib/core/constants/app_assets.dart`. Never reference an asset by raw string path in widgets — always use the `AppAssets` constants.
 
@@ -493,7 +787,7 @@ Subject icons are loaded from the API via URL using `CachedNetworkImage`, not fr
 
 ---
 
-## 10. Coding Guidelines
+## 11. Coding Guidelines
 
 ### Architecture Rules
 
@@ -541,7 +835,7 @@ Subject icons are loaded from the API via URL using `CachedNetworkImage`, not fr
 
 ---
 
-## 11. UX Rules
+## 12. UX Rules
 
 ### Validation
 
@@ -574,7 +868,7 @@ Subject icons are loaded from the API via URL using `CachedNetworkImage`, not fr
 
 ---
 
-## 12. Known Limitations
+## 13. Known Limitations
 
 1. **No image upload:** Profile photo upload is not implemented (API endpoint for avatar upload was not provided in the Postman collection). The avatar shows a placeholder icon.
 
@@ -594,7 +888,7 @@ Subject icons are loaded from the API via URL using `CachedNetworkImage`, not fr
 
 ---
 
-## 13. Testing
+## 14. Testing
 
 ### Current State
 
@@ -626,7 +920,7 @@ No tests have been written yet. The test infrastructure is ready:
 
 ---
 
-## 14. Contributing
+## 15. Contributing
 
 ### Getting Started
 
@@ -673,7 +967,14 @@ flutter run
 
 ---
 
-## 15. Changelog
+## 16. Changelog
+
+### v1.0.0 (2026-07-23)
+
+**Documentation**
+- Added **Application Screenshots** gallery (18 screens) ordered by user journey.
+- Renamed screenshot assets under `screenshots/` for stable GitHub links.
+- Polished README header with badges, hero preview, and Quick Start.
 
 ### v1.0.0 (2026-07-22)
 

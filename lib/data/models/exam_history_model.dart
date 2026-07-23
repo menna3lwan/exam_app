@@ -22,31 +22,66 @@ class ExamHistoryModel {
 
   factory ExamHistoryModel.fromJson(Map<String, dynamic> json) {
     // Extract exam/subject info from nested objects if present,
-    // or fall back to flat field names (mock data shape).
-    final exam = json['exam'] as Map<String, dynamic>?;
-    final subject = json['subject'] as Map<String, dynamic>?;
+    // or fall back to flat field names (mock / local store shape).
+    final exam = _asStringKeyedMap(json['exam']);
+    final subject = _asStringKeyedMap(json['subject']);
 
     return ExamHistoryModel(
-      id: json['_id'] as String? ?? '',
-      examTitle: exam?['title'] as String? ??
-          json['examTitle'] as String? ??
+      id: json['_id']?.toString() ?? json['id']?.toString() ?? '',
+      examTitle: exam?['title']?.toString() ??
+          json['examTitle']?.toString() ??
           '',
-      subjectName: subject?['name'] as String? ??
-          json['subjectName'] as String? ??
+      subjectName: subject?['name']?.toString() ??
+          json['subjectName']?.toString() ??
           '',
-      numberOfQuestions: exam?['numberOfQuestions'] as int? ??
-          json['numberOfQuestions'] as int? ??
+      numberOfQuestions: _readInt(
+            exam?['numberOfQuestions'] ?? json['numberOfQuestions'],
+          ) ??
           0,
-      durationMinutes: exam?['duration'] as int? ??
-          json['durationMinutes'] as int? ??
-          json['duration'] as int? ??
+      durationMinutes: _readInt(
+            exam?['duration'] ??
+                json['durationMinutes'] ??
+                json['duration'],
+          ) ??
           0,
-      correctAnswers: json['correctAnswers'] as int? ??
-          json['correct'] as int? ??
+      correctAnswers: _readInt(
+            json['correctAnswers'] ?? json['correct'],
+          ) ??
           0,
-      timeSpentMinutes: json['timeSpentMinutes'] as int? ??
-          json['time'] as int? ??
+      timeSpentMinutes: _readInt(
+            json['timeSpentMinutes'] ?? json['time'],
+          ) ??
           0,
+    );
+  }
+
+  /// Builds a Results card from a `GET /questions/history` answer record
+  /// plus optional exam/subject metadata fetched separately.
+  factory ExamHistoryModel.fromAnswerHistory({
+    required Map<String, dynamic> record,
+    String examTitle = '',
+    String subjectName = '',
+    int? numberOfQuestions,
+    int? durationMinutes,
+  }) {
+    final qid = _asStringKeyedMap(record['QID']);
+    final examId = qid?['exam']?.toString() ??
+        record['exam']?.toString() ??
+        record['_id']?.toString() ??
+        '';
+    final isCorrect =
+        (record['checkAnswer']?.toString().toLowerCase() ?? '') == 'correct';
+
+    return ExamHistoryModel(
+      id: record['_id']?.toString() ?? examId,
+      examTitle: examTitle,
+      subjectName: subjectName,
+      numberOfQuestions: numberOfQuestions ?? 1,
+      durationMinutes: durationMinutes ?? 0,
+      correctAnswers: isCorrect ? 1 : 0,
+      // avgAnswerTime may be a non-finite string/number from the API —
+      // never call .round()/.toInt() on Infinity/NaN.
+      timeSpentMinutes: _readInt(record['avgAnswerTime']) ?? 0,
     );
   }
 
@@ -59,4 +94,30 @@ class ExamHistoryModel {
         'correctAnswers': correctAnswers,
         'timeSpentMinutes': timeSpentMinutes,
       };
+
+  static Map<String, dynamic>? _asStringKeyedMap(dynamic value) {
+    if (value is Map<String, dynamic>) return value;
+    if (value is Map) {
+      return value.map((key, val) => MapEntry(key.toString(), val));
+    }
+    return null;
+  }
+
+  static int? _readInt(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is num) {
+      final d = value.toDouble();
+      if (!d.isFinite) return null;
+      return d.round();
+    }
+    if (value is String) {
+      final asInt = int.tryParse(value.trim());
+      if (asInt != null) return asInt;
+      final asDouble = double.tryParse(value.trim());
+      if (asDouble == null || !asDouble.isFinite) return null;
+      return asDouble.round();
+    }
+    return null;
+  }
 }
