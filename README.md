@@ -94,7 +94,6 @@ Screens are ordered by the **real user journey** — from authentication through
     <td align="center"><img src="screenshots/18-change-password.png" width="240" alt="Change Password"/><br/><sub><b>Change Password</b></sub></td>
   </tr>
 </table>
-
 ---
 
 ### Authentication
