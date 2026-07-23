@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -18,6 +20,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 ///   on next app start [clearSessionIfNotRemembered] wipes it.
 class TokenService {
   static const _tokenKey = 'auth_token';
+  static const _userIdKey = 'auth_user_id';
   static const _rememberMeKey = 'remember_me';
 
   final FlutterSecureStorage _secureStorage;
@@ -49,6 +52,45 @@ class TokenService {
     return token != null && token.isNotEmpty;
   }
 
+  // ─── User id (for scoping local Results) ───
+
+  Future<void> saveUserId(String userId) async {
+    await _secureStorage.write(key: _userIdKey, value: userId);
+  }
+
+  Future<String?> getUserId() async {
+    final stored = await _secureStorage.read(key: _userIdKey);
+    if (stored != null && stored.isNotEmpty) return stored;
+
+    // Backward compatible: older sessions only stored the JWT.
+    final fromToken = await _userIdFromToken();
+    if (fromToken != null && fromToken.isNotEmpty) {
+      await saveUserId(fromToken);
+      return fromToken;
+    }
+    return null;
+  }
+
+  Future<String?> _userIdFromToken() async {
+    final token = await getToken();
+    if (token == null || token.isEmpty) return null;
+    try {
+      final parts = token.split('.');
+      if (parts.length < 2) return null;
+      final normalized = base64Url.normalize(parts[1]);
+      final payload =
+          jsonDecode(utf8.decode(base64Url.decode(normalized)))
+              as Map<String, dynamic>;
+      return payload['id']?.toString();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> deleteUserId() async {
+    await _secureStorage.delete(key: _userIdKey);
+  }
+
   // ─── Remember Me operations ───
 
   Future<void> setRememberMe(bool value) async {
@@ -75,12 +117,14 @@ class TokenService {
     final rememberMe = getRememberMe();
     if (!rememberMe) {
       await deleteToken();
+      await deleteUserId();
     }
   }
 
   /// Full session cleanup — used on logout and 401/403 forced logout.
   Future<void> clearSession() async {
     await deleteToken();
+    await deleteUserId();
     await _prefs.remove(_rememberMeKey);
   }
 }

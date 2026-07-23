@@ -74,9 +74,13 @@ class ExamRemoteDataSource implements ExamDataSource {
   }
 
   /// GET /questions/history
-  /// Returns user's past exam attempts — belongs to the Questions module
-  /// per the Postman collection (not /exams/history, which the server
-  /// interprets as GET /exams/{id} where id="history").
+  ///
+  /// Confirmed live response shapes:
+  /// - Empty: `{ "message": "success", "history": null }`
+  /// - With data: `{ "message": "success", "history": { ...answer record... } }`
+  ///
+  /// `history` is a **single object** (or null), not a list of exam summaries.
+  /// Casting it to `List` was the Results tab crash root cause.
   @override
   Future<List<ExamHistoryModel>> getExamHistory() async {
     final response =
@@ -84,16 +88,96 @@ class ExamRemoteDataSource implements ExamDataSource {
     final data = response.data;
     if (data == null) return [];
 
-    // Response key is not confirmed — try known candidates.
-    // Other question endpoints use 'questions'; history might use
-    // 'exams', 'history', or something else.
-    final items = (data['exams'] ??
-            data['questions'] ??
-            data['history'] ??
-            data['data']) as List<dynamic>? ??
-        [];
-    return items
-        .map((e) => ExamHistoryModel.fromJson(e as Map<String, dynamic>))
-        .toList();
+    final records = _normalizeHistoryRecords(
+      data['history'] ??
+          data['exams'] ??
+          data['questions'] ??
+          data['data'],
+    );
+    if (records.isEmpty) return [];
+
+    final results = <ExamHistoryModel>[];
+    for (final record in records) {
+      results.add(await _mapAnswerRecord(record));
+    }
+    return results;
+  }
+
+  /// Accepts null, a single Map, or a List of Maps without throwing.
+  List<Map<String, dynamic>> _normalizeHistoryRecords(dynamic raw) {
+    if (raw == null) return [];
+    if (raw is List) {
+      return raw
+          .whereType<Map>()
+          .map((e) => Map<String, dynamic>.from(e))
+          .toList();
+    }
+    if (raw is Map) {
+      return [Map<String, dynamic>.from(raw)];
+    }
+    return [];
+  }
+
+  Future<ExamHistoryModel> _mapAnswerRecord(Map<String, dynamic> record) async {
+    final qid = record['QID'];
+    final qidMap = qid is Map ? Map<String, dynamic>.from(qid) : null;
+    var examId = qidMap?['exam']?.toString() ?? '';
+    var subjectId = qidMap?['subject']?.toString() ?? '';
+
+    String examTitle = '';
+    String subjectName = '';
+    int? numberOfQuestions;
+    int? durationMinutes;
+
+    if (examId.isNotEmpty) {
+      try {
+        final examResponse =
+            await _dio.get<Map<String, dynamic>>('/exams/$examId');
+        final exam = examResponse.data?['exam'];
+        if (exam is Map) {
+          final examMap = Map<String, dynamic>.from(exam);
+          examTitle = examMap['title']?.toString() ?? '';
+          numberOfQuestions = _readInt(examMap['numberOfQuestions']);
+          durationMinutes = _readInt(examMap['duration']);
+          if (subjectId.isEmpty) {
+            subjectId = examMap['subject']?.toString() ?? '';
+          }
+        }
+      } catch (_) {
+        // Enrichment is best-effort — never fail Results over metadata.
+      }
+    }
+
+    if (subjectId.isNotEmpty) {
+      try {
+        final subjectResponse =
+            await _dio.get<Map<String, dynamic>>('/subjects/$subjectId');
+        final category = subjectResponse.data?['category'] ??
+            subjectResponse.data?['subject'];
+        if (category is Map) {
+          subjectName = category['name']?.toString() ?? '';
+        }
+      } catch (_) {
+        // Best-effort.
+      }
+    }
+
+    return ExamHistoryModel.fromAnswerHistory(
+      record: record,
+      examTitle: examTitle,
+      subjectName: subjectName,
+      numberOfQuestions: numberOfQuestions,
+      durationMinutes: durationMinutes,
+    );
+  }
+
+  static int? _readInt(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is double) return value.round();
+    if (value is String) {
+      return int.tryParse(value) ?? double.tryParse(value)?.round();
+    }
+    return null;
   }
 }

@@ -30,8 +30,9 @@ class AuthRepositoryImpl implements AuthRepository {
         email: email,
         password: password,
       );
-      // Persist token + Remember Me preference.
+      // Persist token + user id + Remember Me preference.
       await _tokenService.saveToken(response.token);
+      await _tokenService.saveUserId(response.user.id);
       await _tokenService.setRememberMe(rememberMe);
       return Success(response);
     });
@@ -59,6 +60,7 @@ class AuthRepositoryImpl implements AuthRepository {
       );
       // SignUp also returns a token — save it so the user can proceed.
       await _tokenService.saveToken(response.token);
+      await _tokenService.saveUserId(response.user.id);
       return Success(response);
     });
   }

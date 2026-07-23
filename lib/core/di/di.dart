@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../network/api_constants.dart';
 import '../network/auth_interceptor.dart';
+import '../services/exam_history_store.dart';
 import '../services/session_event_bus.dart';
 import '../services/token_service.dart';
 
@@ -80,6 +81,12 @@ void configureDependencies(SharedPreferences prefs) {
     TokenService(
       secureStorage: getIt<FlutterSecureStorage>(),
       prefs: getIt<SharedPreferences>(),
+    ),
+  );
+  getIt.registerSingleton<ExamHistoryStore>(
+    ExamHistoryStore(
+      prefs: getIt<SharedPreferences>(),
+      tokenService: getIt<TokenService>(),
     ),
   );
   getIt.registerSingleton<SessionEventBus>(SessionEventBus());
@@ -156,7 +163,10 @@ void configureDependencies(SharedPreferences prefs) {
     ExamRemoteDataSource(getIt<Dio>()),
   );
   getIt.registerSingleton<ExamRepository>(
-    ExamRepositoryImpl(getIt<ExamDataSource>()),
+    ExamRepositoryImpl(
+      getIt<ExamDataSource>(),
+      getIt<ExamHistoryStore>(),
+    ),
   );
 
   getIt.registerFactory(() => GetExamsUseCase(getIt<ExamRepository>()));
@@ -171,7 +181,10 @@ void configureDependencies(SharedPreferences prefs) {
     () => StartExamCubit(getIt<GetQuestionsUseCase>()),
   );
   getIt.registerFactory(
-    () => ExamSessionCubit(getIt<SubmitExamUseCase>()),
+    () => ExamSessionCubit(
+      getIt<SubmitExamUseCase>(),
+      getIt<ExamHistoryStore>(),
+    ),
   );
 
   // ── Results (Home tab) ──

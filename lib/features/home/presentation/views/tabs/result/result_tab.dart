@@ -43,7 +43,8 @@ class ResultTab extends StatelessWidget {
                       if (items.isEmpty) return _buildEmptyState();
                       return _buildGroupedList(context, items);
                     },
-                    onError: (context, _) => _buildErrorState(context),
+                    onError: (context, message) =>
+                        _buildErrorState(context, message),
                   );
                 },
               ),
@@ -75,7 +76,7 @@ class ResultTab extends StatelessWidget {
     );
   }
 
-  Widget _buildErrorState(BuildContext context) {
+  Widget _buildErrorState(BuildContext context, String? message) {
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -86,6 +87,17 @@ class ResultTab extends StatelessWidget {
             'Could not load results',
             style: AppTextStyles.bodyLarge.copyWith(color: AppColors.gray),
           ),
+          if (message != null && message.isNotEmpty) ...[
+            const SizedBox(height: AppDimensions.xs),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppDimensions.lg),
+              child: Text(
+                message,
+                textAlign: TextAlign.center,
+                style: AppTextStyles.bodySmall.copyWith(color: AppColors.gray),
+              ),
+            ),
+          ],
           const SizedBox(height: AppDimensions.lg),
           SizedBox(
             width: 140,

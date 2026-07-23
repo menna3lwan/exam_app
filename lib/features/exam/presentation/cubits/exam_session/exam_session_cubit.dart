@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../core/network/api_results.dart';
+import '../../../../../core/services/exam_history_store.dart';
+import '../../../../../data/models/exam_history_model.dart';
 import '../../../../../data/models/exam_model.dart';
 import '../../../../../data/models/question_model.dart';
 import '../../../../../data/models/subject_model.dart';
@@ -15,10 +17,13 @@ import 'exam_session_state.dart';
 /// All business logic lives here — the view is purely presentational.
 class ExamSessionCubit extends Cubit<ExamSessionState> {
   final SubmitExamUseCase _submitExamUseCase;
+  final ExamHistoryStore _historyStore;
   Timer? _timer;
 
-  ExamSessionCubit(this._submitExamUseCase)
-      : super(const ExamSessionInitial());
+  ExamSessionCubit(
+    this._submitExamUseCase,
+    this._historyStore,
+  ) : super(const ExamSessionInitial());
 
   void startExam({
     required ExamModel exam,
@@ -110,6 +115,12 @@ class ExamSessionCubit extends Cubit<ExamSessionState> {
     switch (result) {
       case Success(:final data):
         if (data != null) {
+          await _persistHistory(
+            session: current,
+            correctAnswers: data.correct,
+            timeSpentSeconds: timeSpent,
+          );
+          if (isClosed) return;
           emit(ExamSessionSubmitted(
             data,
             current.questions,
@@ -135,6 +146,12 @@ class ExamSessionCubit extends Cubit<ExamSessionState> {
     switch (result) {
       case Success(:final data):
         if (data != null) {
+          await _persistHistory(
+            session: current,
+            correctAnswers: data.correct,
+            timeSpentSeconds: current.exam.duration * 60,
+          );
+          if (isClosed) return;
           emit(ExamSessionTimedOut(
             data,
             current.questions,
@@ -144,6 +161,25 @@ class ExamSessionCubit extends Cubit<ExamSessionState> {
       case Failure(:final message):
         emit(ExamSessionError(message ?? 'Submission failed'));
     }
+  }
+
+  Future<void> _persistHistory({
+    required ExamSessionActive session,
+    required int correctAnswers,
+    required int timeSpentSeconds,
+  }) async {
+    final minutes = (timeSpentSeconds / 60).ceil().clamp(0, 24 * 60);
+    await _historyStore.save(
+      ExamHistoryModel(
+        id: '${session.exam.id}_${DateTime.now().millisecondsSinceEpoch}',
+        examTitle: session.exam.title,
+        subjectName: session.subject.name,
+        numberOfQuestions: session.questions.length,
+        durationMinutes: session.exam.duration,
+        correctAnswers: correctAnswers,
+        timeSpentMinutes: minutes,
+      ),
+    );
   }
 
   Map<String, String> _buildAnswersMap(ExamSessionActive current) {
