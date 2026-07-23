@@ -44,5 +44,21 @@ void main() {
       expect(model.numberOfQuestions, 10);
       expect(model.timeSpentMinutes, 1);
     });
+
+    test('fromAnswerHistory tolerates Infinity/NaN avgAnswerTime', () {
+      final model = ExamHistoryModel.fromAnswerHistory(
+        record: {
+          '_id': 'hist1',
+          'checkAnswer': 'wrong',
+          'avgAnswerTime': 'Infinity',
+          'QID': {'exam': 'exam1'},
+        },
+        examTitle: 'JS Basics',
+        subjectName: 'JavaScript',
+      );
+
+      expect(model.timeSpentMinutes, 0);
+      expect(model.correctAnswers, 0);
+    });
   });
 }

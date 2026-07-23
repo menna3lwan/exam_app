@@ -98,7 +98,11 @@ class ExamRemoteDataSource implements ExamDataSource {
 
     final results = <ExamHistoryModel>[];
     for (final record in records) {
-      results.add(await _mapAnswerRecord(record));
+      try {
+        results.add(await _mapAnswerRecord(record));
+      } catch (_) {
+        // Skip malformed answer records instead of failing the whole tab.
+      }
     }
     return results;
   }
@@ -174,9 +178,17 @@ class ExamRemoteDataSource implements ExamDataSource {
   static int? _readInt(dynamic value) {
     if (value == null) return null;
     if (value is int) return value;
-    if (value is double) return value.round();
+    if (value is num) {
+      final d = value.toDouble();
+      if (!d.isFinite) return null;
+      return d.round();
+    }
     if (value is String) {
-      return int.tryParse(value) ?? double.tryParse(value)?.round();
+      final asInt = int.tryParse(value.trim());
+      if (asInt != null) return asInt;
+      final asDouble = double.tryParse(value.trim());
+      if (asDouble == null || !asDouble.isFinite) return null;
+      return asDouble.round();
     }
     return null;
   }

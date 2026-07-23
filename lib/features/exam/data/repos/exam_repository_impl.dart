@@ -49,16 +49,26 @@ class ExamRepositoryImpl implements ExamRepository {
   @override
   Future<ApiResults<List<ExamHistoryModel>>> getExamHistory() {
     return safeCall(() async {
-      // Always hit the remote endpoint so auth/network failures still surface
-      // when there is nothing cached. Parsing must tolerate history:null / Map.
-      final remote = await _dataSource.getExamHistory();
       final local = await _historyStore.getAll();
 
-      // Local store holds full exam summaries saved after submit.
-      // Remote history is answer-level and incomplete — prefer local when
-      // present, otherwise show whatever the API safely mapped.
+      // Remote parsing must never wipe local Results. If the API shape is
+      // unexpected, fall back to local (or empty) instead of a hard error.
+      List<ExamHistoryModel> remote = const [];
+      Object? remoteError;
+      try {
+        remote = await _dataSource.getExamHistory();
+      } catch (e) {
+        remoteError = e;
+        if (local.isEmpty) rethrow;
+      }
+
       if (local.isNotEmpty) {
         return Success(_mergePreferLocal(local: local, remote: remote));
+      }
+      if (remoteError != null) {
+        // Should be unreachable because we rethrow when local is empty,
+        // but keeps the intent explicit for readers.
+        throw remoteError;
       }
       return Success(remote);
     });

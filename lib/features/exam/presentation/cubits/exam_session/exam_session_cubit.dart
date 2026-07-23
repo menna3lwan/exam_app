@@ -168,7 +168,9 @@ class ExamSessionCubit extends Cubit<ExamSessionState> {
     required int correctAnswers,
     required int timeSpentSeconds,
   }) async {
-    final minutes = (timeSpentSeconds / 60).ceil().clamp(0, 24 * 60);
+    final minutes = timeSpentSeconds <= 0
+        ? 0
+        : (timeSpentSeconds / 60).ceil().clamp(0, 24 * 60);
     await _historyStore.save(
       ExamHistoryModel(
         id: '${session.exam.id}_${DateTime.now().millisecondsSinceEpoch}',

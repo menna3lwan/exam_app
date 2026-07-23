@@ -71,10 +71,6 @@ class ExamHistoryModel {
         '';
     final isCorrect =
         (record['checkAnswer']?.toString().toLowerCase() ?? '') == 'correct';
-    final avgTime = double.tryParse(
-          record['avgAnswerTime']?.toString() ?? '',
-        ) ??
-        0;
 
     return ExamHistoryModel(
       id: record['_id']?.toString() ?? examId,
@@ -83,7 +79,9 @@ class ExamHistoryModel {
       numberOfQuestions: numberOfQuestions ?? 1,
       durationMinutes: durationMinutes ?? 0,
       correctAnswers: isCorrect ? 1 : 0,
-      timeSpentMinutes: avgTime.round(),
+      // avgAnswerTime may be a non-finite string/number from the API —
+      // never call .round()/.toInt() on Infinity/NaN.
+      timeSpentMinutes: _readInt(record['avgAnswerTime']) ?? 0,
     );
   }
 
@@ -108,8 +106,18 @@ class ExamHistoryModel {
   static int? _readInt(dynamic value) {
     if (value == null) return null;
     if (value is int) return value;
-    if (value is double) return value.round();
-    if (value is String) return int.tryParse(value) ?? double.tryParse(value)?.round();
+    if (value is num) {
+      final d = value.toDouble();
+      if (!d.isFinite) return null;
+      return d.round();
+    }
+    if (value is String) {
+      final asInt = int.tryParse(value.trim());
+      if (asInt != null) return asInt;
+      final asDouble = double.tryParse(value.trim());
+      if (asDouble == null || !asDouble.isFinite) return null;
+      return asDouble.round();
+    }
     return null;
   }
 }
