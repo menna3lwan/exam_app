@@ -58,7 +58,7 @@ dev_dependencies:
   # Mocking for Repositories/DataSources/Services — Mockito-free, no codegen.
   mocktail: ^1.0.4
   # Cubit/Bloc state-transition testing (asserts exact emitted state sequence).
-  bloc_test: ^9.1.7
+  bloc_test: ^10.0.0
   # Deterministic control of Timer/Duration for ExamSessionCubit's countdown.
   fake_async: ^1.3.1
 
